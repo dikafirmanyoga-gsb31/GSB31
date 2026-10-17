@@ -38,6 +38,18 @@ export function errMsg(e) {
   return "Terjadi kesalahan.";
 }
 
+export async function downloadFile(url, params) {
+  const res = await api.get(url, { params, responseType: "blob" });
+  const cd = res.headers["content-disposition"] || "";
+  const name = (cd.match(/filename="([^"]+)"/) || [])[1] || "laporan.xlsx";
+  const href = URL.createObjectURL(res.data);
+  const a = document.createElement("a");
+  a.href = href;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(href), 30000);
+}
+
 const idr = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 2 });
 const num = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 });
 export const fmtIDR = (v) => (v === null || v === undefined ? "—" : idr.format(v));

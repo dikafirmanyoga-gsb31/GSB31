@@ -39,6 +39,7 @@ DENIED = {
 DEFAULT_SETTINGS = {
     "reminder_windows": [30, 14, 7],
     "quotation_approver_roles": ["director"],
+    "email_reminders_enabled": True,
     "kopra_activity_types": ["Pembelian", "Penjualan", "Pengiriman", "Lainnya"],
     "kopra_units": ["kg", "ton", "karung"],
     "document_categories": ["Legalitas Perusahaan", "Perizinan", "Sertifikat", "Kontrak", "Perjanjian", "Lainnya"],

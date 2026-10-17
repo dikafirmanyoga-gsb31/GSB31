@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, Pencil, FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
-import { api, errMsg, fmtDate, fmtNum, fmtIDR, todayISO } from "@/lib/api";
+import { api, errMsg, fmtDate, fmtNum, fmtIDR, todayISO, downloadFile } from "@/lib/api";
 import { PageHeader, Field, Select, Table, Td, Badge, Empty, useFetch, useSettings, usePartners } from "@/components/common";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -82,7 +82,10 @@ export default function Kopra() {
   return (
     <div data-testid="kopra-page">
       <PageHeader title="Usaha Kopra" subtitle="Catatan kegiatan usaha kopra: pembelian, penjualan, pengiriman, dan lainnya."
-        actions={<Button onClick={() => setDlg({})} data-testid="kopra-add-button"><Plus className="mr-1 h-4 w-4" />Catat Kegiatan</Button>} />
+        actions={<>
+          <Button variant="outline" onClick={() => downloadFile("/reports/kopra.xlsx", { date_from: flt.date_from, date_to: flt.date_to }).catch(() => toast.error("Gagal mengunduh laporan."))} data-testid="kopra-export-button"><FileSpreadsheet className="mr-1 h-4 w-4" />Ekspor Excel</Button>
+          <Button onClick={() => setDlg({})} data-testid="kopra-add-button"><Plus className="mr-1 h-4 w-4" />Catat Kegiatan</Button>
+        </>} />
       <div className="mb-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
         <Select value={flt.activity_type} onChange={set("activity_type")} data-testid="kopra-filter-type"><option value="">Semua jenis</option>{settings.kopra_activity_types.map((t) => <option key={t}>{t}</option>)}</Select>
         <Select value={flt.status} onChange={set("status")} data-testid="kopra-filter-status"><option value="">Semua status</option>{STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}</Select>

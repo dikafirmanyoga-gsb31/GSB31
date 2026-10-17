@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Plus, Pencil, Ban, TrendingUp, TrendingDown, Scale } from "lucide-react";
+import { Plus, Pencil, Ban, FileSpreadsheet, TrendingUp, TrendingDown, Scale } from "lucide-react";
 import { toast } from "sonner";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { useAuth } from "@/context/AuthContext";
-import { api, errMsg, fmtDate, fmtIDR, todayISO } from "@/lib/api";
+import { api, errMsg, fmtDate, fmtIDR, todayISO, downloadFile } from "@/lib/api";
 import { PageHeader, Card, StatCard, Field, Select, Table, Td, Badge, Empty, useFetch, useSettings, usePartners } from "@/components/common";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -74,7 +74,10 @@ export default function Finance() {
   return (
     <div data-testid="finance-page">
       <PageHeader title="Keuangan" subtitle="Pencatatan pemasukan dan pengeluaran berdasarkan data nyata yang diinput."
-        actions={<Button onClick={() => setDlg({})} data-testid="transaction-add-button"><Plus className="mr-1 h-4 w-4" />Catat Transaksi</Button>} />
+        actions={<>
+          <Button variant="outline" onClick={() => downloadFile("/reports/finance.xlsx", { date_from: p.date_from, date_to: p.date_to }).catch(() => toast.error("Gagal mengunduh laporan."))} data-testid="finance-export-button"><FileSpreadsheet className="mr-1 h-4 w-4" />Ekspor Excel</Button>
+          <Button onClick={() => setDlg({})} data-testid="transaction-add-button"><Plus className="mr-1 h-4 w-4" />Catat Transaksi</Button>
+        </>} />
       <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
         <Input type="date" value={p.date_from} onChange={(e) => setP({ ...p, date_from: e.target.value })} data-testid="finance-filter-from" />
         <Input type="date" value={p.date_to} onChange={(e) => setP({ ...p, date_to: e.target.value })} data-testid="finance-filter-to" />

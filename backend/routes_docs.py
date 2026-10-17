@@ -207,7 +207,7 @@ async def upsert_auto(source_type, source_id, title, due):
             pass
         return key
     if ex["due_date"] != due or ex["status"] == "closed":
-        await db.reminders.update_one({"source_key": key}, {"$set": {"due_date": due, "title": title, "status": "open"},
+        await db.reminders.update_one({"source_key": key}, {"$set": {"due_date": due, "title": title, "status": "open", "emailed_levels": []},
                                                             "$unset": {"done_by": "", "done_by_name": "", "done_at": "", "follow_up_note": ""}})
     elif ex["title"] != title:
         await db.reminders.update_one({"source_key": key}, {"$set": {"title": title}})

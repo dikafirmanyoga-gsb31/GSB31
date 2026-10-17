@@ -231,6 +231,55 @@ function SettingsTab() {
   );
 }
 
+function EmailTab() {
+  const { data, reload } = useFetch("/notifications/email-logs");
+  const { data: settings, reload: reloadS } = useFetch("/settings");
+  const [busy, setBusy] = useState(false);
+  if (!data || !settings) return null;
+  const enabled = settings.email_reminders_enabled !== false;
+  const toggle = async (v) => {
+    await api.put("/settings", { email_reminders_enabled: !!v });
+    reloadS();
+  };
+  const run = async () => {
+    setBusy(true);
+    try {
+      const { data: r } = await api.post("/notifications/email-reminders/run");
+      const msg = { disabled: "Email pengingat sedang dinonaktifkan.", nothing_due: "Tidak ada dokumen/kontrak baru yang perlu diingatkan." }[r.status];
+      toast[r.failed ? "error" : "success"](msg || `${r.items} item · ${r.sent} email terkirim · ${r.failed} gagal`);
+      reload();
+    } catch (e) {
+      toast.error(errMsg(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const noEmail = data.recipients.filter((r) => r.is_active && !r.email);
+  return (
+    <div className="space-y-4" data-testid="director-email">
+      <Card className="space-y-3">
+        <label className="flex items-center gap-2 text-sm"><Checkbox checked={enabled} onCheckedChange={toggle} data-testid="email-enabled-checkbox" />Kirim email pengingat otomatis setiap hari pukul 08:00 WIB</label>
+        <p className="text-xs text-muted-foreground">Email dikirim untuk dokumen & kontrak yang mencapai H-{settings.reminder_windows.join(", H-")} atau sudah lewat. Setiap tingkat hanya dikirim sekali per dokumen. Penerima: semua akun aktif yang memiliki email.</p>
+        {noEmail.length > 0 && <p className="text-xs text-amber-300" data-testid="email-missing-warning">Belum punya email (tidak menerima pengingat): {noEmail.map((r) => r.name).join(", ")}. Isi lewat tab Akun Pengguna.</p>}
+        <Button onClick={run} disabled={busy} data-testid="email-run-now-button">{busy ? "Mengirim…" : "Kirim Pengingat Sekarang"}</Button>
+      </Card>
+      <Table head={["Waktu", "Penerima", "Subjek", "Item", "Status", "Pemicu"]} testId="email-logs-table">
+        {data.logs.map((l, i) => (
+          <tr key={i}>
+            <Td className="whitespace-nowrap text-xs">{fmtDateTime(l.at)}</Td>
+            <Td>{l.to_name}<div className="font-mono text-xs text-muted-foreground">{l.to_email}</div></Td>
+            <Td className="text-xs">{l.subject}</Td>
+            <Td className="font-mono">{l.items}</Td>
+            <Td><Badge label={l.status === "sent" ? "Terkirim" : "Gagal"} tone={l.status === "sent" ? "green" : "red"} />{l.error && <div className="text-xs text-muted-foreground">{l.error}</div>}</Td>
+            <Td className="text-xs">{l.trigger}</Td>
+          </tr>
+        ))}
+      </Table>
+      {data.logs.length === 0 && <Empty text="Belum ada email terkirim." />}
+    </div>
+  );
+}
+
 export default function Director({ tab }) {
   const [t, setT] = useState(tab);
   useEffect(() => { setT(tab); }, [tab]);
@@ -242,11 +291,13 @@ export default function Director({ tab }) {
           <TabsTrigger value="ringkasan" data-testid="director-tab-ringkasan">Ringkasan</TabsTrigger>
           <TabsTrigger value="akun" data-testid="director-tab-akun">Akun Pengguna</TabsTrigger>
           <TabsTrigger value="audit" data-testid="director-tab-audit">Audit Log</TabsTrigger>
+          <TabsTrigger value="email" data-testid="director-tab-email">Notifikasi Email</TabsTrigger>
           <TabsTrigger value="pengaturan" data-testid="director-tab-pengaturan">Pengaturan</TabsTrigger>
         </TabsList>
         <TabsContent value="ringkasan"><Summary /></TabsContent>
         <TabsContent value="akun"><Accounts /></TabsContent>
         <TabsContent value="audit"><Audit /></TabsContent>
+        <TabsContent value="email"><EmailTab /></TabsContent>
         <TabsContent value="pengaturan"><SettingsTab /></TabsContent>
       </Tabs>
     </div>
