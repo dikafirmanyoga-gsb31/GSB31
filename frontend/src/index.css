@@ -5,28 +5,28 @@
 
 @layer base {
     :root {
-        --background: 222 49% 8%;
+        --background: 222 47% 6%;
         --foreground: 210 40% 98%;
-        --card: 221 39% 11%;
+        --card: 217 38% 10%;
         --card-foreground: 210 40% 98%;
-        --popover: 222 47% 11%;
+        --popover: 222 47% 8%;
         --popover-foreground: 210 40% 98%;
         --primary: 184 100% 50%;
         --primary-foreground: 222 49% 8%;
-        --secondary: 217 33% 17%;
+        --secondary: 217 33% 14%;
         --secondary-foreground: 210 40% 98%;
-        --muted: 217 33% 17%;
+        --muted: 217 33% 14%;
         --muted-foreground: 215 20% 65%;
-        --accent: 217 33% 17%;
-        --accent-foreground: 210 40% 98%;
+        --accent: 184 100% 12%;
+        --accent-foreground: 184 100% 50%;
         --destructive: 0 84% 60%;
         --destructive-foreground: 0 0% 98%;
-        --border: 217 30% 20%;
-        --input: 217 30% 22%;
+        --border: 217 30% 16%;
+        --input: 217 30% 18%;
         --ring: 184 100% 50%;
         --chart-1: 184 100% 50%;
         --chart-2: 38 92% 50%;
-        --radius: 0.6rem;
+        --radius: 0.75rem;
     }
 }
 
@@ -38,7 +38,10 @@
         -webkit-font-smoothing: antialiased;
     }
     h1, h2, h3, .font-display { font-family: 'Outfit', sans-serif; }
-    .font-mono, code { font-family: 'JetBrains Mono', monospace; }
+    .font-mono, code { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.18); border-radius: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
     ::selection { background: rgba(0, 240, 255, 0.3); }
     input, select, textarea { color-scheme: dark; }
 }
@@ -46,9 +49,22 @@
 .neon-text { text-shadow: 0 0 12px rgba(0, 240, 255, 0.55); }
 .neon-border { box-shadow: 0 0 0 1px rgba(0, 240, 255, 0.35), 0 0 18px -6px rgba(0, 240, 255, 0.5); }
 .grid-bg {
-    background-image: linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
-    background-size: 40px 40px;
+    background-color: #070C16;
+    background-image: radial-gradient(ellipse 70% 50% at 50% -10%, rgba(0, 240, 255, 0.09), transparent 70%),
+        linear-gradient(rgba(56, 189, 248, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56, 189, 248, 0.035) 1px, transparent 1px);
+    background-size: 100% 100%, 44px 44px, 44px 44px;
+    background-attachment: fixed;
+}
+.glass-card {
+    background: linear-gradient(180deg, rgba(17, 27, 45, 0.85), rgba(11, 18, 32, 0.85));
+    backdrop-filter: blur(14px);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px -12px rgba(0, 0, 0, 0.6);
+}
+.accent-line { position: relative; }
+.accent-line::before {
+    content: ""; position: absolute; left: 16px; right: 16px; top: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.45), transparent);
 }
 .field-select {
     @apply h-10 w-full rounded-md border border-input bg-background/60 px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring;

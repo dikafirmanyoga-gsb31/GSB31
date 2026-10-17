@@ -32,6 +32,9 @@ User choices: 4 akun awal dengan password sementara (wajib ganti); persetujuan p
 - Template Dokumen menu: director uploads official templates (DOCX/DOC/PDF/JPG/PNG, max 15MB; categories Kop Surat, Penawaran, Kontrak Kerja Sama, Kontrak Tripartit, Surat Resmi, Lainnya), all roles download, archive/restore; unicode filenames supported
 - Tested iteration_3 (8/9 + 22/22 regression); unicode download + timezone bugs fixed and verified
 
+## Implemented (2026-10-17, iteration 4) — visual refresh only
+- Darker navy base with subtle radial cyan glow, glass cards with top accent line, gradient sidebar active state, glowing primary buttons, dotted status badges, blurred dialog overlays, pill-style user box (avatar, role badge) in topbar, refined login glow. No functional changes.
+
 ## Pending from user
 - Staff email addresses (Putri, Firdaus, Billy) — user said "nanti saja"
 - Official template files (kop surat, draft penawaran, kontrak kerja sama/tripartit) to be uploaded by user; later: generate quotation print from the official kop surat
