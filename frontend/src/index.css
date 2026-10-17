@@ -1,0 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --background: 222 49% 8%;
+        --foreground: 210 40% 98%;
+        --card: 221 39% 11%;
+        --card-foreground: 210 40% 98%;
+        --popover: 222 47% 11%;
+        --popover-foreground: 210 40% 98%;
+        --primary: 184 100% 50%;
+        --primary-foreground: 222 49% 8%;
+        --secondary: 217 33% 17%;
+        --secondary-foreground: 210 40% 98%;
+        --muted: 217 33% 17%;
+        --muted-foreground: 215 20% 65%;
+        --accent: 217 33% 17%;
+        --accent-foreground: 210 40% 98%;
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 217 30% 20%;
+        --input: 217 30% 22%;
+        --ring: 184 100% 50%;
+        --chart-1: 184 100% 50%;
+        --chart-2: 38 92% 50%;
+        --radius: 0.6rem;
+    }
+}
+
+@layer base {
+    * { @apply border-border; }
+    body {
+        @apply bg-background text-foreground;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        -webkit-font-smoothing: antialiased;
+    }
+    h1, h2, h3, .font-display { font-family: 'Outfit', sans-serif; }
+    .font-mono, code { font-family: 'JetBrains Mono', monospace; }
+    ::selection { background: rgba(0, 240, 255, 0.3); }
+}
+
+.neon-text { text-shadow: 0 0 12px rgba(0, 240, 255, 0.55); }
+.neon-border { box-shadow: 0 0 0 1px rgba(0, 240, 255, 0.35), 0 0 18px -6px rgba(0, 240, 255, 0.5); }
+.grid-bg {
+    background-image: linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+.field-select {
+    @apply h-10 w-full rounded-md border border-input bg-background/60 px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring;
+}
+.fade-up { animation: fadeUp .45s ease both; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.print-area { display: none; }
+@media print {
+    @page { size: A4; margin: 16mm; }
+    body { background: #fff !important; }
+    body * { visibility: hidden; }
+    .print-area, .print-area * { visibility: visible; }
+    .print-area { display: block; position: absolute; left: 0; top: 0; width: 100%; }
+}
+
+[data-debug-wrapper="true"] { display: contents !important; }
