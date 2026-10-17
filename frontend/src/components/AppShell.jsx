@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import {
-  LayoutDashboard, Building2, Users, Boxes, FileText, FolderLock, FileStack, BellRing, Wallet, ShieldCheck, UserPlus, Activity, LogOut, KeyRound, Menu, Lock,
+  LayoutDashboard, Building2, Users, Boxes, FileText, FolderLock, FileStack, BellRing, Wallet, ShieldCheck, UserPlus, Activity, LogOut, KeyRound, Menu, Lock, Download,
 } from "lucide-react";
+import { useInstall } from "@/lib/pwa";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import { Logo } from "@/components/Logo";
@@ -95,6 +97,48 @@ const UserBox = () => {
   );
 };
 
+const InstallButton = ({ className, testId = "pwa-install-button" }) => {
+  const { canInstall, iosHint, install } = useInstall();
+  if (!canInstall && !iosHint) return null;
+  const click = () => {
+    if (canInstall) { install(); return; }
+    toast.info("Di Safari: ketuk tombol Bagikan, lalu pilih 'Tambah ke Layar Utama'.", { duration: 8000 });
+  };
+  return (
+    <Button variant="outline" size="sm" className={className} onClick={click} data-testid={testId}>
+      <Download className="mr-1 h-4 w-4" />Pasang Aplikasi
+    </Button>
+  );
+};
+
+const BOTTOM = [
+  { to: "/", label: "Beranda", icon: LayoutDashboard, id: "dashboard" },
+  { to: "/penawaran", label: "Penawaran", icon: FileText, id: "penawaran" },
+  { to: "/kopra", label: "Kopra", icon: Boxes, id: "kopra" },
+  { to: "/pengingat", label: "Pengingat", icon: BellRing, id: "pengingat" },
+];
+
+const BottomNav = ({ onMenu }) => (
+  <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-800/80 bg-[#050912]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden" data-testid="mobile-bottom-nav">
+    <div className="grid grid-cols-5">
+      {BOTTOM.map((b) => (
+        <NavLink key={b.to} to={b.to} end={b.to === "/"} data-testid={`bottom-nav-${b.id}`}
+          className={({ isActive }) => cn("flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium text-slate-400 transition-colors", isActive && "text-[#00F0FF]")}>
+          {({ isActive }) => (
+            <>
+              <span className={cn("flex h-7 w-12 items-center justify-center rounded-full transition-colors", isActive && "bg-cyan-400/15 shadow-[0_0_14px_rgba(0,240,255,0.25)]")}><b.icon className="h-[18px] w-[18px]" /></span>
+              {b.label}
+            </>
+          )}
+        </NavLink>
+      ))}
+      <button onClick={onMenu} className="flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium text-slate-400" data-testid="bottom-nav-menu">
+        <span className="flex h-7 w-12 items-center justify-center rounded-full"><Menu className="h-[18px] w-[18px]" /></span>Menu
+      </button>
+    </div>
+  </nav>
+);
+
 export default function AppShell() {
   const [open, setOpen] = useState(false);
   return (
@@ -108,23 +152,29 @@ export default function AppShell() {
         <p className="px-3 pt-4 font-mono text-[10px] text-slate-600">GSB31 · v1.0</p>
       </aside>
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="w-72 border-slate-800 bg-[#050912] p-4">
-          <SheetTitle className="mb-4"><Logo className="h-8" testId="mobile-logo" /></SheetTitle>
-          <NavItems onNavigate={() => setOpen(false)} />
+        <SheetContent side="left" className="flex w-[82vw] max-w-xs flex-col border-slate-800 bg-[#050912] p-4">
+          <SheetTitle className="mb-2"><Logo className="h-8" testId="mobile-logo" /></SheetTitle>
+          <div className="flex-1 overflow-y-auto pb-4"><NavItems onNavigate={() => setOpen(false)} /></div>
+          <InstallButton className="w-full" testId="pwa-install-button-mobile" />
         </SheetContent>
       </Sheet>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-800/70 bg-[#070C16]/80 px-4 backdrop-blur-xl sm:px-8">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-2 border-b border-slate-800/70 bg-[#070C16]/80 px-3 pt-[env(safe-area-inset-top)] backdrop-blur-xl sm:px-8">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setOpen(true)} data-testid="mobile-menu-button">
               <Menu className="h-5 w-5" />
             </Button>
+            <Logo className="h-6 sm:hidden" testId="topbar-logo-mobile" />
             <span className="hidden items-center gap-2 font-mono text-xs text-slate-500 sm:flex"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />GSB31 · Sistem Operasional</span>
           </div>
-          <UserBox />
+          <div className="flex items-center gap-3">
+            <InstallButton className="hidden lg:inline-flex" />
+            <UserBox />
+          </div>
         </header>
-        <main className="flex-1 px-4 py-7 grid-bg sm:px-10 sm:py-10"><div className="mx-auto max-w-[1440px]"><Outlet /></div></main>
+        <main className="flex-1 px-4 pb-28 pt-6 grid-bg sm:px-10 sm:py-10 lg:pb-10"><div className="mx-auto max-w-[1440px]"><Outlet /></div></main>
       </div>
+      <BottomNav onMenu={() => setOpen(true)} />
       <RestrictionModal />
     </div>
   );
