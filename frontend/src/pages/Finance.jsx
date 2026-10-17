@@ -56,12 +56,15 @@ export default function Finance() {
   const { data: sum, reload: reloadSum } = useFetch(`/finance/summary?date_from=${p.date_from}&date_to=${p.date_to}`);
   const [dlg, setDlg] = useState(null);
   const refresh = () => { reload(); reloadSum(); };
-  const voidTx = async (t) => {
-    const reason = window.prompt("Alasan pembatalan transaksi:");
-    if (!reason) return;
+  const [voiding, setVoiding] = useState(null);
+  const [reason, setReason] = useState("");
+  const voidTx = async () => {
+    if (reason.trim().length < 3) return toast.error("Alasan minimal 3 karakter.");
     try {
-      await api.post(`/finance/transactions/${t.id}/void`, { reason });
+      await api.post(`/finance/transactions/${voiding.id}/void`, { reason });
       toast.success("Transaksi dibatalkan.");
+      setVoiding(null);
+      setReason("");
       refresh();
     } catch (e) {
       toast.error(errMsg(e));
@@ -110,13 +113,23 @@ export default function Finance() {
               <Td className="font-mono">{fmtIDR(t.amount)}</Td>
               <Td className="whitespace-nowrap text-right">
                 <Button size="icon" variant="ghost" onClick={() => setDlg(t)} data-testid={`transaction-edit-${t.id}`}><Pencil className="h-4 w-4" /></Button>
-                {can("director") && <Button size="icon" variant="ghost" onClick={() => voidTx(t)} title="Batalkan (Direktur)" data-testid={`transaction-void-${t.id}`}><Ban className="h-4 w-4" /></Button>}
+                {can("director") && <Button size="icon" variant="ghost" onClick={() => setVoiding(t)} title="Batalkan (Direktur)" data-testid={`transaction-void-${t.id}`}><Ban className="h-4 w-4" /></Button>}
               </Td>
             </tr>
           ))}
         </Table>
         {tx && tx.length === 0 && <Empty text="Belum ada transaksi pada periode ini." />}
       </div>
+      {voiding && (
+        <Dialog open onOpenChange={(o) => !o && setVoiding(null)}>
+          <DialogContent data-testid="void-dialog">
+            <DialogHeader><DialogTitle>Batalkan Transaksi</DialogTitle></DialogHeader>
+            <p className="text-sm text-slate-300">{voiding.description} · {fmtIDR(voiding.amount)}</p>
+            <Field label="Alasan pembatalan *" htmlFor="void-reason"><Input id="void-reason" value={reason} onChange={(e) => setReason(e.target.value)} data-testid="void-reason-input" /></Field>
+            <DialogFooter><Button variant="ghost" onClick={() => setVoiding(null)}>Batal</Button><Button variant="destructive" onClick={voidTx} data-testid="void-confirm-button">Batalkan Transaksi</Button></DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
       {dlg && <TxDialog initial={dlg.id ? dlg : null} settings={settings} partners={partners} onClose={() => setDlg(null)} onSaved={() => { setDlg(null); refresh(); }} />}
     </div>
   );

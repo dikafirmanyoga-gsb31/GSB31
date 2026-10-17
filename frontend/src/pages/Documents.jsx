@@ -124,7 +124,7 @@ function DocSheet({ id, onClose, onChanged }) {
             <ul className="mt-3 divide-y divide-border">
               {d.files.map((f) => (
                 <li key={f.id} className="flex items-center justify-between gap-2 py-2 text-sm" data-testid={`document-file-${f.id}`}>
-                  <span className="min-w-0 truncate">{f.original_filename}<span className="block text-xs text-muted-foreground">{(f.size / 1024).toFixed(0)} KB · {f.uploaded_by_name}</span></span>
+                  <span className="min-w-0 truncate">{f.original_filename}<span className="block text-xs text-muted-foreground">{f.size < 1024 ? `${f.size} B` : `${(f.size / 1024).toFixed(0)} KB`} · {f.uploaded_by_name}</span></span>
                   <span className="flex shrink-0">
                     <Button size="icon" variant="ghost" onClick={() => open(f)} data-testid={`document-file-open-${f.id}`}><FileDown className="h-4 w-4" /></Button>
                     <Button size="icon" variant="ghost" onClick={() => remove(f)} data-testid={`document-file-delete-${f.id}`}><Trash2 className="h-4 w-4" /></Button>

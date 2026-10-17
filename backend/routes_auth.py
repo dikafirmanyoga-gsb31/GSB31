@@ -36,7 +36,7 @@ def client_ip(request: Request) -> str:
 @router.post("/login")
 async def login(body: LoginIn, request: Request, response: Response):
     ident = body.identifier.strip().lower()
-    key = f"{client_ip(request)}:{ident}"
+    key = f"id:{ident}"
     now = datetime.now(timezone.utc)
     att = await db.login_attempts.find_one({"key": key}, {"_id": 0})
     if att and att.get("locked_until") and datetime.fromisoformat(att["locked_until"]) > now:

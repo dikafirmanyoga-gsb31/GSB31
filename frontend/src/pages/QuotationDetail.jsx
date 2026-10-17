@@ -68,8 +68,8 @@ const Actions = ({ q, act }) => {
     <div className="flex flex-wrap gap-2">
       {(s === "draft" || s === "rejected") && <Button variant="outline" asChild data-testid="quotation-edit-button"><Link to={`/penawaran/${q.id}/edit`}><Pencil className="mr-1 h-4 w-4" />Edit</Link></Button>}
       {s === "draft" && <Button onClick={() => act("pending")} data-testid="quotation-submit-button"><Send className="mr-1 h-4 w-4" />Ajukan Persetujuan</Button>}
-      {s === "pending" && !expired && <Button className="bg-emerald-500 text-white hover:bg-emerald-600" onClick={() => act("approved")} data-testid="quotation-approve-button"><CheckCircle2 className="mr-1 h-4 w-4" />Setujui</Button>}
-      {s === "pending" && <Button variant="destructive" onClick={() => act("rejected")} data-testid="quotation-reject-button"><XCircle className="mr-1 h-4 w-4" />Tolak</Button>}
+      {s === "pending" && !expired && q.can_approve && <Button className="bg-emerald-500 text-white hover:bg-emerald-600" onClick={() => act("approved")} data-testid="quotation-approve-button"><CheckCircle2 className="mr-1 h-4 w-4" />Setujui</Button>}
+      {s === "pending" && q.can_approve && <Button variant="destructive" onClick={() => act("rejected")} data-testid="quotation-reject-button"><XCircle className="mr-1 h-4 w-4" />Tolak</Button>}
       {s === "pending" && <Button variant="ghost" onClick={() => act("draft")} data-testid="quotation-withdraw-button"><Undo2 className="mr-1 h-4 w-4" />Tarik ke Draft</Button>}
       {s === "rejected" && <Button variant="ghost" onClick={() => act("draft")} data-testid="quotation-redraft-button"><Undo2 className="mr-1 h-4 w-4" />Kembalikan ke Draft</Button>}
       {s === "approved" && !expired && <Button onClick={() => act("sent")} data-testid="quotation-mark-sent-button"><Send className="mr-1 h-4 w-4" />Tandai Dikirim</Button>}

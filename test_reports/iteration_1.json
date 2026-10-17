@@ -1,0 +1,50 @@
+{
+  "summary": "First full e2e run of GSB31 (backend pytest 22 tests + Playwright UI for director/opfin/ops/forced-change-password/mobile). Everything core works: login by username or email, wrong-pw error, 5-fail -> 429 lock, no register endpoint, forced change-password (API 403 PASSWORD_CHANGE_REQUIRED + UI screen), RBAC (DIRECTOR_ONLY / FINANCE_RESTRICTED 403s + audit), dashboard finance key omitted for ops, kopra price fields stripped for ops (incl. dashboard/partner detail, price preserved on ops edit), user quota (concurrent 9 parallel creates -> exactly 6 succeed, 3x409, total=10; 11th 409; ops max 7 via role change 409), deactivation -> existing session 401 + login 403, partner dedupe 409 (case/whitespace-insensitive), quotation server-side totals (ignores client totals), status flow, approval director-only and opfin when enabled in settings, print button, documents reminders one-per-source with no duplicates after repeated GET/update, reminder done, PDF/PNG upload + authenticated download (unauth 401, .exe rejected), finance CRUD/summary/void director-only, audit log director-only with all expected actions. UI: same 11 sidebar items for all roles, lock icons for non-permitted, popups with correct titles + close/back buttons, direct URL /keuangan /direktur /direktur/akun shows locked panel, mobile Sheet menu works. Only real issues: X-Forwarded-For lockout bypass, mobile horizontal overflow on dashboard, native date pickers/window.prompt, seed doesn't sync admin password.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "POST /api/auth/login", "issue": "Brute-force lockout can be bypassed: key = first X-Forwarded-For value (client controlled). Sending 7 failed logins each with a different X-Forwarded-For header gave 7x401, never 429. Fix: key lockout by identifier alone (or identifier + the right-most/trusted proxy IP), not the client-supplied first XFF entry.", "priority": "HIGH"}
+    ],
+    "minor": [
+      {"endpoint": "startup seed()", "issue": "Director is only inserted if no director exists; if ADMIN_PASSWORD in .env changes, the existing director hash is not updated (auth playbook item 5). Fine if intentional (director changes own password in app), but note it."},
+      {"endpoint": "CORS", "issue": "CORS_ORIGINS=https://53c6adfb-...preview.emergentagent.com does not include the actual frontend host (gurindam-sinar.preview.emergentagent.com). Works now because same origin, but will break if frontend/backend origins differ in production."},
+      {"endpoint": "Set-Cookie", "issue": "Code sets SameSite=Lax but ingress rewrites to SameSite=None; Partitioned (infra, not app bug). Just FYI."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Dashboard (mobile 390px)", "issue": "Horizontal overflow: document.scrollWidth=442 on 390 viewport; 'Dokumen & Kontrak Mendekati/Lewat Masa Berlaku' card badges ('Segera Berakhir') and 'Lihat semua' are cut off at the right edge.", "selector": "[data-testid='dashboard-expiring']", "priority": "MEDIUM"},
+      {"component": "Mobile Sheet + RestrictionModal", "issue": "Clicking a locked item (Keuangan) inside the mobile Sheet opens the restriction modal but the Sheet stays open behind it; should close Sheet first.", "selector": "[role=dialog] [data-testid='sidebar-link-keuangan']", "priority": "LOW"},
+      {"component": "QuotationDetail", "issue": "Setujui/Tolak buttons shown to users who cannot approve (q.can_approve=false); clicking yields DIRECTOR ONLY popup. Acceptable per spec pattern, but consider hiding/disabling using can_approve.", "selector": "[data-testid='quotation-approve-button']", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Kopra / Quotation / Finance / Reminders / Documents / Audit forms", "issues": ["Uses browser native <input type=date> instead of shadcn Calendar/Popover; native calendar icon is dark on the dark background (almost invisible)."]},
+      {"screen": "Finance - void transaction", "issues": ["Uses window.prompt() for void reason; replace with a shadcn Dialog with textarea + validation (min 3 chars)."]},
+      {"screen": "Document detail sheet", "issues": ["Toast overlaps sheet title (top-right). Small files show '0 KB' size - show bytes or '<1 KB'."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_gsb31_e2e.py", "/app/backend/tests/cleanup_test_data.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Fix login lockout key so X-Forwarded-For spoofing can't bypass the 5-attempt lock",
+    "Fix mobile horizontal overflow on Dashboard expiring-documents card (and check other cards/tables at 390px)",
+    "Close mobile Sheet when a locked nav item opens the restriction modal",
+    "Replace native date inputs with shadcn Calendar date picker; replace window.prompt void reason with Dialog",
+    "Optionally: add actual frontend host to CORS_ORIGINS; hide approve/reject when !can_approve"
+  ],
+  "critical_code_review_comments": [
+    "routes_auth.client_ip trusts first X-Forwarded-For entry -> lockout bypass (see backend critical).",
+    "routes_users.update_user role change: acquire('ops') happens before update_one; if update raises DuplicateKeyError (email) the ops counter is not released -> counter drift until restart reconcile. Same for release when target was ops.",
+    "reconcile_counters only on startup; counters can drift if any insert path fails unexpectedly (non-DuplicateKey exceptions in create_user don't release).",
+    "sync_reminders() is executed on every GET /reminders and every dashboard load, iterating all documents/quotations - fine for small data, consider caching/background job later.",
+    "audit_logs date_to filter uses string hack date_to+'T99' (works lexicographically but fragile).",
+    "Storage objects of deleted files are only soft-deleted (is_deleted) - expected, but no purge."
+  ],
+  "updated_files": ["/app/backend/tests/test_gsb31_e2e.py", "/app/backend/tests/cleanup_test_data.py", "/app/backend/tests/__init__.py"],
+  "success_rate": {"backend": "100% (22/22 functional; 1 security issue found via manual probe)", "frontend": "95%"},
+  "test_credentials": "From /app/memory/test_credentials.md - correct. Director tengku.erens / GSB31-Direktur!2026; staff temp GSB31-Sementara!26.",
+  "seed_data_creation": "All TEST_ data created during the run was deleted afterwards (6 TEST_ users, partner, kopra, 3 quotations, 2 documents + file records, 2 transactions, reminders, login_attempts). Backend restarted -> counters back to users=4, ops=1. Staff passwords reset to GSB31-Sementara!26 with must_change_password=true; all 4 seeded accounts active; approver setting reset to ['director']. Audit log entries from the test run were intentionally kept (audit integrity). Uploaded test objects remain in object storage (no delete API).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run: cd /app/backend && REACT_APP_BACKEND_URL=<url> python -m pytest tests/test_gsb31_e2e.py -n 0 -v ; then ALWAYS run python tests/cleanup_test_data.py && sudo supervisorctl restart backend (real customer DB, quota of 10 accounts). The suite changes staff passwords to TestPass12345x during the run; cleanup resets them. Tests are module-level functions on purpose (xdist loadscope).",
+  "rca of the issue": "Lockout bypass: routes_auth.login builds key f'{client_ip(request)}:{ident}' where client_ip returns X-Forwarded-For.split(',')[0] - the client can set this header, and the ingress appends rather than overwrites, so each request with a new fake IP gets a fresh counter. Repro: curl POST /api/auth/login 7x with -H 'X-Forwarded-For: 10.0.0.N' -> all 401. Mitigation: count failures per identifier (plus optionally per real IP = last XFF hop)."
+}

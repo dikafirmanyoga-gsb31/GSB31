@@ -33,6 +33,7 @@ const NavItems = ({ onNavigate }) => {
   const click = (e, item) => {
     if (item.perm && !can(item.perm)) {
       e.preventDefault();
+      onNavigate?.();
       api.post("/access/check", { feature: item.perm }).catch(() => {});
       return;
     }

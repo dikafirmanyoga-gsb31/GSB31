@@ -40,6 +40,7 @@
     h1, h2, h3, .font-display { font-family: 'Outfit', sans-serif; }
     .font-mono, code { font-family: 'JetBrains Mono', monospace; }
     ::selection { background: rgba(0, 240, 255, 0.3); }
+    input, select, textarea { color-scheme: dark; }
 }
 
 .neon-text { text-shadow: 0 0 12px rgba(0, 240, 255, 0.55); }

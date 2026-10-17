@@ -6,8 +6,8 @@ import { PageHeader, Card, StatCard, Badge, Empty, useFetch } from "@/components
 
 const SectionTitle = ({ children, to, testId }) => (
   <div className="mb-3 flex items-center justify-between">
-    <h2 className="font-display text-base font-semibold">{children}</h2>
-    {to && <Link to={to} className="text-xs text-cyan-300 hover:underline" data-testid={testId}>Lihat semua</Link>}
+    <h2 className="min-w-0 font-display text-base font-semibold">{children}</h2>
+    {to && <Link to={to} className="shrink-0 pl-2 text-xs text-cyan-300 hover:underline" data-testid={testId}>Lihat semua</Link>}
   </div>
 );
 
@@ -44,13 +44,13 @@ export default function Dashboard() {
   return (
     <div data-testid="dashboard-page">
       <PageHeader title={`Selamat datang, ${user.name}`} subtitle={`Ringkasan bisnis · periode ${fmtDate(d.period.from)} – ${fmtDate(d.period.to)}`} />
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 [&>*]:min-w-0">
         <StatCard label="Pelanggan" value={d.partners.pelanggan} hint={`${d.partners.pemasok} pemasok · ${d.partners.mitra} mitra`} icon={Users} testId="stat-partners" />
         <StatCard label="Penawaran aktif" value={(q.pending || 0) + (q.approved || 0) + (q.sent || 0)} hint={`${q.pending || 0} menunggu persetujuan`} icon={FileText} testId="stat-quotations" />
         <StatCard label="Kontrak aktif" value={d.contracts.aktif} hint={`${d.contracts.segera} segera berakhir · ${d.contracts.kedaluwarsa} kedaluwarsa`} icon={FolderLock} testId="stat-contracts" />
         <StatCard label="Pengingat terbuka" value={d.reminders_open} hint={`${d.reminders_overdue} terlambat`} icon={BellRing} accent="text-amber-400" testId="stat-reminders" />
       </div>
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+      <div className="mt-6 grid gap-4 lg:grid-cols-3 [&>*]:min-w-0">
         <Card className="lg:col-span-2" data-testid="dashboard-expiring">
           <SectionTitle to="/dokumen" testId="dashboard-docs-link">Dokumen & Kontrak Mendekati/Lewat Masa Berlaku</SectionTitle>
           {d.expiring.length === 0 ? <Empty text="Tidak ada dokumen yang mendekati kedaluwarsa." /> : (
