@@ -27,6 +27,15 @@ User choices: 4 akun awal dengan password sementara (wajib ganti); persetujuan p
 - Excel export: /api/reports/finance.xlsx (finance roles; Ringkasan, Per Bulan, Per Kategori, Transaksi) and /api/reports/kopra.xlsx (all roles; price columns only for finance roles); buttons on Keuangan & Usaha Kopra pages
 - Tested iteration_2: 14/16 new + 22/22 regression; 2 minor bugs (number format, invalid date 500) fixed and verified
 
+## Implemented (2026-10-17, iteration 3)
+- Weekly business summary email to Director every Monday 07:00 WIB (cron weekly-summary -> /api/cron/weekly-summary): quotations, contracts, cash flow of previous Mon–Sun (WIB bounds converted to UTC); toggle + manual send (with confirm) in Director > Notifikasi Email
+- Template Dokumen menu: director uploads official templates (DOCX/DOC/PDF/JPG/PNG, max 15MB; categories Kop Surat, Penawaran, Kontrak Kerja Sama, Kontrak Tripartit, Surat Resmi, Lainnya), all roles download, archive/restore; unicode filenames supported
+- Tested iteration_3 (8/9 + 22/22 regression); unicode download + timezone bugs fixed and verified
+
+## Pending from user
+- Staff email addresses (Putri, Firdaus, Billy) — user said "nanti saja"
+- Official template files (kop surat, draft penawaran, kontrak kerja sama/tripartit) to be uploaded by user; later: generate quotation print from the official kop surat
+
 ## Backlog
 - P1: WhatsApp notifications (not configured)
 - P1: Staff accounts need email addresses to receive reminder emails

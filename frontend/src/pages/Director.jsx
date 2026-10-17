@@ -248,11 +248,12 @@ function EmailTab() {
     }
   };
   const runWeekly = async () => {
+    if (!window.confirm("Kirim ringkasan bisnis minggu lalu ke email Direktur sekarang?")) return;
     setBusy(true);
     try {
       const { data: r } = await api.post("/notifications/weekly-summary/run");
       const msg = { disabled: "Ringkasan mingguan sedang dinonaktifkan.", no_recipient: "Akun Direktur belum memiliki email." }[r.status];
-      toast[r.failed || msg ? "error" : "success"](msg || `Ringkasan ${r.period[0]} s/d ${r.period[1]} terkirim.`);
+      toast[r.failed ? "error" : msg ? "warning" : "success"](msg || `Ringkasan ${r.period[0]} s/d ${r.period[1]} terkirim.`);
       reload();
     } catch (e) {
       toast.error(errMsg(e));

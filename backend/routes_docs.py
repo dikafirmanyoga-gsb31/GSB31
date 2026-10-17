@@ -7,7 +7,8 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from pymongo.errors import DuplicateKeyError
 
-from core import (db, require, audit, new_id, now_iso, today_jkt, rx, get_settings, partner_map, ensure_partner, logger)
+from core import (db, require, audit, new_id, now_iso, today_jkt, rx, get_settings, partner_map, ensure_partner, logger,
+                  content_disposition)
 from storage import put_object, get_object, APP_NAME
 
 router = APIRouter()
@@ -167,9 +168,8 @@ async def download_file(fid: str, user=Depends(require("ops"))):
     except Exception as e:
         logger.error(f"download failed: {type(e).__name__}")
         raise HTTPException(502, "Gagal mengambil file. Silakan coba lagi.")
-    name = rec["original_filename"].replace('"', "")
     return Response(content=data, media_type=rec["content_type"],
-                    headers={"Content-Disposition": f'inline; filename="{name}"', "Cache-Control": "private, no-store"})
+                    headers={"Content-Disposition": content_disposition(rec["original_filename"], "inline"), "Cache-Control": "private, no-store"})
 
 
 @router.delete("/files/{fid}")

@@ -78,6 +78,19 @@ def rx(q: str):
     return {"$regex": re.escape(q.strip()), "$options": "i"}
 
 
+def content_disposition(name: str, kind: str = "attachment") -> str:
+    from urllib.parse import quote
+    name = name.replace('"', "").replace("\n", " ")
+    ascii_name = name.encode("ascii", "ignore").decode().strip() or "file"
+    return f"{kind}; filename=\"{ascii_name}\"; filename*=UTF-8''{quote(name)}"
+
+
+def jkt_day_bounds_utc(start, end):
+    s = datetime(start.year, start.month, start.day, tzinfo=JKT).astimezone(timezone.utc).isoformat()
+    e = (datetime(end.year, end.month, end.day, tzinfo=JKT) + timedelta(days=1)).astimezone(timezone.utc).isoformat()
+    return s, e
+
+
 def hash_password(p: str) -> str:
     return bcrypt.hashpw(p.encode(), bcrypt.gensalt()).decode()
 

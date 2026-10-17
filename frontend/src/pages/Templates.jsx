@@ -88,7 +88,8 @@ export default function Templates() {
   };
   const archive = async (t) => {
     try {
-      await api.post(`/templates/${t.id}/archive`);
+      const { data: r } = await api.post(`/templates/${t.id}/archive`);
+      toast.success(r.is_archived ? "Template diarsipkan." : "Template dipulihkan.");
       reload();
     } catch (e) {
       toast.error(errMsg(e));

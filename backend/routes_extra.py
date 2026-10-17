@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks, UploadFile, File, Form
 from fastapi.responses import Response
 
-from core import db, require, audit, new_id, now_iso, today_jkt, get_settings, logger, rx
+from core import db, require, audit, new_id, now_iso, today_jkt, get_settings, logger, rx, content_disposition, jkt_day_bounds_utc
 from routes_business import quotation_out
 from routes_finance import summarize
 from routes_docs import days_left
@@ -32,17 +32,18 @@ def last_week():
 async def weekly_data():
     start, end = last_week()
     s_iso, e_iso = start.isoformat(), end.isoformat()
+    u_start, u_end = jkt_day_bounds_utc(start, end)
     created = [q async for q in db.quotations.find({"date": {"$gte": s_iso, "$lte": e_iso}}, {"_id": 0, "number": 1, "total": 1, "status": 1, "valid_until": 1})]
     decided = {"approved": 0, "rejected": 0, "sent": 0}
-    async for q in db.quotations.find({"history.at": {"$gte": s_iso, "$lte": e_iso + "T99"}}, {"_id": 0, "history": 1}):
+    async for q in db.quotations.find({"history.at": {"$gte": u_start, "$lt": u_end}}, {"_id": 0, "history": 1}):
         for h in q.get("history", []):
-            if s_iso <= h["at"][:10] <= e_iso and h["status"] in decided:
+            if u_start <= h["at"] < u_end and h["status"] in decided:
                 decided[h["status"]] += 1
     open_status = {}
     async for q in db.quotations.find({"status": {"$in": ["pending", "approved", "sent"]}}, {"_id": 0, "status": 1, "valid_until": 1}):
         st = quotation_out(q)["effective_status"]
         open_status[st] = open_status.get(st, 0) + 1
-    new_contracts = await db.documents.count_documents({"kind": "kontrak", "created_at": {"$gte": s_iso, "$lte": e_iso + "T99"}})
+    new_contracts = await db.documents.count_documents({"kind": "kontrak", "created_at": {"$gte": u_start, "$lt": u_end}})
     expiring, expired = [], 0
     async for d in db.documents.find({"kind": "kontrak", "status": "aktif", "expiry_date": {"$nin": [None, ""]}}, {"_id": 0, "name": 1, "expiry_date": 1}):
         dl = days_left(d["expiry_date"])
@@ -202,9 +203,8 @@ async def download_template(tid: str, user=Depends(require("ops"))):
         logger.error(f"template download failed: {type(e).__name__}")
         raise HTTPException(502, "Gagal mengambil file. Silakan coba lagi.")
     await audit(user, "template_downloaded", "template", tid, detail=t["name"])
-    name = t["original_filename"].replace('"', "")
     return Response(content=data, media_type=t["content_type"],
-                    headers={"Content-Disposition": f'attachment; filename="{name}"', "Cache-Control": "private, no-store"})
+                    headers={"Content-Disposition": content_disposition(t["original_filename"]), "Cache-Control": "private, no-store"})
 
 
 @router.post("/templates/{tid}/archive")
