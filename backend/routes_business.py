@@ -28,6 +28,7 @@ class SettingsIn(BaseModel):
     reminder_windows: Optional[List[int]] = Field(None, min_length=1, max_length=5)
     quotation_approver_roles: Optional[List[Literal["director", "opfin"]]] = None
     email_reminders_enabled: Optional[bool] = None
+    weekly_summary_enabled: Optional[bool] = None
     kopra_activity_types: Optional[List[str]] = Field(None, min_length=1, max_length=20)
     kopra_units: Optional[List[str]] = Field(None, min_length=1, max_length=20)
     document_categories: Optional[List[str]] = Field(None, min_length=1, max_length=30)

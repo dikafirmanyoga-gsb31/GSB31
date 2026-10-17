@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard, Building2, Users, Boxes, FileText, FolderLock, BellRing, Wallet, ShieldCheck, UserPlus, Activity, LogOut, KeyRound, Menu, Lock,
+  LayoutDashboard, Building2, Users, Boxes, FileText, FolderLock, FileStack, BellRing, Wallet, ShieldCheck, UserPlus, Activity, LogOut, KeyRound, Menu, Lock,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
@@ -18,6 +18,7 @@ export const NAV = [
   { to: "/kopra", label: "Usaha Kopra", icon: Boxes, id: "kopra" },
   { to: "/penawaran", label: "Penawaran", icon: FileText, id: "penawaran" },
   { to: "/dokumen", label: "Dokumen & Kontrak", icon: FolderLock, id: "dokumen" },
+  { to: "/template", label: "Template Dokumen", icon: FileStack, id: "template" },
   { to: "/pengingat", label: "Pengingat", icon: BellRing, id: "pengingat" },
   { to: "/keuangan", label: "Keuangan", icon: Wallet, id: "keuangan", perm: "finance" },
   { section: "Direktur" },

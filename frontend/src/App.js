@@ -20,6 +20,7 @@ import Reminders from "@/pages/Reminders";
 import Finance from "@/pages/Finance";
 import Director from "@/pages/Director";
 import CP31 from "@/pages/CP31";
+import Templates from "@/pages/Templates";
 
 const Splash = () => (
   <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground" data-testid="app-loading">Memuat GSB31…</div>
@@ -56,6 +57,7 @@ function AppRoutes() {
         <Route path="penawaran/:id" element={<QuotationDetail />} />
         <Route path="penawaran/:id/edit" element={<QuotationForm />} />
         <Route path="dokumen" element={<Documents />} />
+        <Route path="template" element={<Templates />} />
         <Route path="pengingat" element={<Reminders />} />
         <Route path="keuangan" element={<Guard perm="finance"><Finance /></Guard>} />
         <Route path="direktur" element={<Guard perm="director"><Director tab="ringkasan" /></Guard>} />

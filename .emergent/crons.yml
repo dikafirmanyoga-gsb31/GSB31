@@ -7,3 +7,11 @@ crons:
     endpoint: "{{BASE_URL}}/api/cron/reminder-emails"
     method: POST
     enabled: true
+  - name: weekly-summary
+    description: "Kirim ringkasan bisnis mingguan (penawaran, kontrak, arus kas) ke Direktur setiap Senin 07:00 WIB"
+    cron: "0 7 * * 1"
+    timezone: "Asia/Jakarta"
+    # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
+    endpoint: "{{BASE_URL}}/api/cron/weekly-summary"
+    method: POST
+    enabled: true

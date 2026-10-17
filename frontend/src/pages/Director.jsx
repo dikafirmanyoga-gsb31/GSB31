@@ -237,6 +237,29 @@ function EmailTab() {
   const [busy, setBusy] = useState(false);
   if (!data || !settings) return null;
   const enabled = settings.email_reminders_enabled !== false;
+  const weekly = settings.weekly_summary_enabled !== false;
+  const toggleWeekly = async (v) => {
+    try {
+      await api.put("/settings", { weekly_summary_enabled: !!v });
+      toast.success(v ? "Ringkasan mingguan diaktifkan." : "Ringkasan mingguan dinonaktifkan.");
+      reloadS();
+    } catch (e) {
+      toast.error(errMsg(e));
+    }
+  };
+  const runWeekly = async () => {
+    setBusy(true);
+    try {
+      const { data: r } = await api.post("/notifications/weekly-summary/run");
+      const msg = { disabled: "Ringkasan mingguan sedang dinonaktifkan.", no_recipient: "Akun Direktur belum memiliki email." }[r.status];
+      toast[r.failed || msg ? "error" : "success"](msg || `Ringkasan ${r.period[0]} s/d ${r.period[1]} terkirim.`);
+      reload();
+    } catch (e) {
+      toast.error(errMsg(e));
+    } finally {
+      setBusy(false);
+    }
+  };
   const toggle = async (v) => {
     try {
       await api.put("/settings", { email_reminders_enabled: !!v });
@@ -267,6 +290,11 @@ function EmailTab() {
         <p className="text-xs text-muted-foreground">Email dikirim untuk dokumen & kontrak yang mencapai H-{settings.reminder_windows.join(", H-")} atau sudah lewat. Setiap tingkat hanya dikirim sekali per dokumen. Penerima: semua akun aktif yang memiliki email.</p>
         {noEmail.length > 0 && <p className="text-xs text-amber-300" data-testid="email-missing-warning">Belum punya email (tidak menerima pengingat): {noEmail.map((r) => r.name).join(", ")}. Isi lewat tab Akun Pengguna.</p>}
         <Button onClick={run} disabled={busy} data-testid="email-run-now-button">{busy ? "Mengirim…" : "Kirim Pengingat Sekarang"}</Button>
+      </Card>
+      <Card className="space-y-3">
+        <label className="flex items-center gap-2 text-sm"><Checkbox checked={weekly} onCheckedChange={toggleWeekly} data-testid="weekly-enabled-checkbox" />Kirim ringkasan bisnis mingguan ke Direktur setiap Senin pukul 07:00 WIB</label>
+        <p className="text-xs text-muted-foreground">Berisi penawaran (baru, disetujui, dikirim, ditolak), kontrak (baru, segera berakhir, kedaluwarsa), dan arus kas minggu lalu (Senin–Minggu).</p>
+        <Button variant="outline" onClick={runWeekly} disabled={busy} data-testid="weekly-run-now-button">Kirim Ringkasan Minggu Lalu Sekarang</Button>
       </Card>
       <Table head={["Waktu", "Penerima", "Subjek", "Item", "Status", "Pemicu"]} testId="email-logs-table">
         {data.logs.map((l, i) => (
