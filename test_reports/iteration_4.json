@@ -1,0 +1,29 @@
+{
+  "summary": "Frontend-only test of the PWA and responsive mobile navigation for GSB31. PWA: manifest.json is valid (name, short_name GSB31, start_url /, scope /, display standalone, theme and background #070C16, icons 192/512/maskable 512 and apple-touch 180 all return 200 at the correct pixel sizes). The service worker /sw.js registers with scope / and controls the page. No /api response came from the service worker (response.from_service_worker=false for all /api calls). Going offline and navigating shows offline.html ('Tidak ada koneksi internet'). ISSUE FOUND AND FIXED: at the start of testing, the dev server was serving a stale index.html (theme-color #000000, no manifest or apple-touch-icon link) because CRA does not hot-reload public/index.html. After `supervisorctl restart frontend` the served HTML has the correct manifest, apple-touch-icon and theme-color. Mobile 390x800: mobile-bottom-nav is visible and all 5 items work (dashboard/penawaran/kopra/pengingat navigate; menu opens the sheet with all 12 sidebar links). The sheet closes after navigating. There is no horizontal page overflow (scrollWidth == clientWidth) on /, /penawaran, /dokumen, /kopra, /keuangan, /direktur, /mitra, /perusahaan, /pengingat, /template: wide tables scroll inside their own container. The last dashboard card ends at y=688, above the bottom nav at y=732. Tablet 768: the bottom nav shows and there is no overflow. Desktop 1920: the bottom nav and hamburger are hidden, the sidebar is visible, and the user pill shows 'Billy / Operasional'. Billy's forced password change works. RBAC: on mobile, tapping Keuangan, Menu Direktur or Kelola Akun in the sheet closes the sheet and shows the restriction modal with the correct message, and the URL stays /. On desktop, the Keuangan restriction also works. Logout works. The install buttons do not render in headless mode (no beforeinstallprompt), as expected, with no page errors. Cleanup: Billy was reset to GSB31-Sementara!26 (must_change_password=true). No TEST_ data was created.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "offline.html", "issue": "The logo image is broken when offline. sw.js pre-caches /icons/icon-192.png, but the fetch handler only answers navigate requests, so the image request goes to the network and fails. Fix: in the fetch handler, return caches.match(req) for SHELL asset URLs, or inline the icon as a data URI / SVG in offline.html.", "selector": "img[alt=GSB31]", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Restriction modal on mobile (390px)", "issues": ["The dialog runs edge to edge with square corners and no side margin. Consider w-[calc(100%-2rem)] rounded-2xl on small screens."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Remember: public/index.html changes need a frontend restart in the dev server (this was done in this run). Production builds are unaffected.",
+    "Optional: make sw.js serve the cached /icons/icon-192.png (or inline the icon) so the offline page logo renders.",
+    "Optional: add side margin and rounded corners to the restriction dialog on mobile."
+  ],
+  "critical_code_review_comments": [
+    "sw.js: SHELL caches /manifest.json and the icon, but the fetch handler never serves them, so the pre-cache is effectively unused except for offline.html.",
+    "pwa.js useInstall: iosHint is computed on every render. This is fine, but the iOS check does not detect iPadOS 13+ (which reports as Macintosh). Consider adding navigator.maxTouchPoints>1 && /Macintosh/."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "97% (all requested flows pass after the frontend restart; 1 low-priority offline-icon bug)"},
+  "seed_data_creation": "None. Billy's password was changed during the test and then reset to GSB31-Sementara!26 via the director reset-password endpoint.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Auth is cookie-based (use a cookie jar with curl; the login response returns the user object, not a token). Staff must change their password on first login; reset them via POST /api/users/{id}/reset-password as the director. Mobile bottom nav testids: mobile-bottom-nav, bottom-nav-*. Sheet links reuse sidebar-link-* inside [role=dialog]. The restriction modal is restriction-modal. If index.html edits don't show up, restart the frontend."
+}

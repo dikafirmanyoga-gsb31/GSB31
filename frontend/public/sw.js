@@ -1,4 +1,4 @@
-const CACHE = "gsb31-shell-v1";
+const CACHE = "gsb31-shell-v2";
 const SHELL = ["/offline.html", "/icons/icon-192.png", "/manifest.json"];
 
 self.addEventListener("install", (e) => {
@@ -14,6 +14,12 @@ self.addEventListener("activate", (e) => {
 // Only page navigations are handled: always network first, offline page as fallback. API data is never cached.
 self.addEventListener("fetch", (e) => {
   const req = e.request;
-  if (req.method !== "GET" || req.mode !== "navigate") return;
+  if (req.method !== "GET") return;
+  const url = new URL(req.url);
+  if (url.origin === self.location.origin && SHELL.includes(url.pathname) && req.mode !== "navigate") {
+    e.respondWith(fetch(req).catch(() => caches.match(url.pathname)));
+    return;
+  }
+  if (req.mode !== "navigate") return;
   e.respondWith(fetch(req).catch(() => caches.match("/offline.html")));
 });

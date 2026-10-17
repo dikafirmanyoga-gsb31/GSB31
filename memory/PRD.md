@@ -35,6 +35,11 @@ User choices: 4 akun awal dengan password sementara (wajib ganti); persetujuan p
 ## Implemented (2026-10-17, iteration 4) — visual refresh only
 - Darker navy base with subtle radial cyan glow, glass cards with top accent line, gradient sidebar active state, glowing primary buttons, dotted status badges, blurred dialog overlays, pill-style user box (avatar, role badge) in topbar, refined login glow. No functional changes.
 
+## Implemented (2026-10-17, iteration 5) — PWA & mobile
+- PWA: manifest.json, icons (192/512/maskable/apple-touch), minimal service worker (network-first navigations, offline.html fallback, API never cached), install button (Chrome/Edge/Android) + iOS "Tambah ke Layar Utama" hint
+- Mobile: bottom navigation (Beranda, Penawaran, Kopra, Pengingat, Menu), safe-area insets, no horizontal overflow; same backend/RBAC
+- Not provided: full offline data, background push notifications
+
 ## Pending from user
 - Staff email addresses (Putri, Firdaus, Billy) — user said "nanti saja"
 - Official template files (kop surat, draft penawaran, kontrak kerja sama/tripartit) to be uploaded by user; later: generate quotation print from the official kop surat

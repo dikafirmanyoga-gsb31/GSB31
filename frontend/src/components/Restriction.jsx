@@ -28,7 +28,7 @@ export const RestrictionModal = () => {
   const c = CONTENT[code];
   return (
     <Dialog open={!!c} onOpenChange={(o) => !o && setCode(null)}>
-      <DialogContent className="border-amber-500/40 bg-[#0F172A] sm:max-w-md" data-testid="restriction-modal">
+      <DialogContent className="w-[calc(100%-2rem)] rounded-2xl border-amber-500/40 bg-[#0F172A] sm:max-w-md" data-testid="restriction-modal">
         <DialogHeader>
           <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full border border-amber-400/50 bg-amber-500/10">
             <ShieldAlert className="h-6 w-6 text-amber-400" />
