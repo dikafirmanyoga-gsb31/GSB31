@@ -1,7 +1,7 @@
 from io import BytesIO
 from datetime import date
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
@@ -47,7 +47,10 @@ def xlsx_response(wb, name):
 
 
 def safe_date(s):
-    return date.fromisoformat(s).isoformat() if s else ""
+    try:
+        return date.fromisoformat(s).isoformat() if s else ""
+    except ValueError:
+        raise HTTPException(400, "Format tanggal tidak valid (gunakan YYYY-MM-DD).")
 
 
 @router.get("/finance.xlsx")
@@ -63,7 +66,7 @@ async def finance_report(date_from: str = "", date_to: str = "", user=Depends(re
     ws.title = "Ringkasan"
     sheet(ws, title, ["Keterangan", "Nilai"],
           [["Total pemasukan", s["income"]], ["Total pengeluaran", s["expense"]], ["Selisih", s["net"]], ["Jumlah transaksi", s["count"]]], (2,))
-    ws.cell(row=8, column=2).number_format = "0"
+    ws.cell(row=len(title) + 6, column=2).number_format = "0"
     sheet(wb.create_sheet("Per Bulan"), title, ["Bulan", "Pemasukan", "Pengeluaran", "Selisih"],
           [[m["month"], m["pemasukan"], m["pengeluaran"], m["pemasukan"] - m["pengeluaran"]] for m in s["monthly"]], (2, 3, 4))
     sheet(wb.create_sheet("Per Kategori"), title, ["Jenis", "Kategori", "Nilai"],

@@ -1,0 +1,39 @@
+{
+  "summary": "Tested the new Email Reminder Notifications and Excel Report Export features (backend pytest 16 tests + Playwright UI as director and Billy/ops) and re-ran the iteration_1 regression suite (22/22 pass). Email: director-only RBAC (opfin/ops get 403 DIRECTOR_ONLY on run and logs), disabled setting -> status 'disabled', manual run sent one digest per active user with email (director + TEST_ recipient delivered@resend.dev, sent=2, failed=0, emailed_levels=['H-7']), second run -> nothing_due with no new logs, changing expiry_date resets emailed_levels=[], cron: 401 without/wrong/no-'Bearer' auth, valid Bearer acks 200 in 0.09s and the background run sent 2 emails (trigger 'cron'), same X-Webhook-Id again -> not processed (cron_runs count 1, no new logs), new id with nothing due -> no emails. Only 2 sending runs in total (2 emails to the customer). Reports: finance.xlsx sheets Ringkasan/Per Bulan/Per Kategori/Transaksi, totals match /api/finance/summary, voided transaction excluded, opfin 200, ops 403 FINANCE_RESTRICTED, unauthenticated 401. kopra.xlsx: price columns (Harga/satuan, Nilai, Total nilai) present for director/opfin and absent for Billy (checked both API and the file downloaded through the UI), 'dibatalkan' activities excluded from Ringkasan. UI: Notifikasi Email tab works (logs table, missing-email warning, checkbox toggle persists, run-now toasts for disabled and nothing_due). finance-export-button and kopra-export-button download correctly named .xlsx files. Billy cannot open Keuangan (restriction popup) or see the Director email tab. Found 2 bugs: the finance report's Ringkasan sheet has the wrong number format on 2 rows, and an invalid date returns 500.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/reports/finance.xlsx", "issue": "Ringkasan sheet number format is off by one row. routes_reports.py line 66 `ws.cell(row=8, column=2).number_format = \"0\"` targets the 'Selisih' row, not 'Jumlah transaksi'. Data rows start at row 6 (title rows 1-3, header row 5): 6=pemasukan, 7=pengeluaran, 8=Selisih, 9=Jumlah transaksi. Result: Selisih shows with format '0' (no Rp, decimals rounded, e.g. 625000.5 is shown as 625001), and Jumlah transaksi shows as 'Rp 3,00'. Fix: use row=9 (better: compute it from len(title)+2+4)."},
+      {"endpoint": "GET /api/reports/finance.xlsx & /api/reports/kopra.xlsx", "issue": "An invalid date (e.g. date_from=2026-13-45) returns HTTP 500 because date.fromisoformat raises ValueError in safe_date. It should return 400 with a message, or declare the params as date type for a 422."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Director > Notifikasi Email", "issues": ["The email-enabled-checkbox toggle has no try/catch or toast. If the PUT fails, nothing is shown and the change is not confirmed. Add a success/error toast.", "The logs table has no column for the reminder items or levels sent, so the director can't see which documents were included. Consider storing the titles in email_logs."]},
+      {"screen": "Keuangan / Usaha Kopra export", "issues": ["Because downloadFile uses responseType 'blob', 403 error bodies are Blobs, so detail.code isn't parsed and the RBAC popup never fires. Only a generic toast shows. Low impact, since the buttons are only reachable by permitted roles.", "Finance export ignores the type/category filters shown on the page (only the date range is applied). Make this clear in the button label or tooltip, or pass the filters through."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_gsb31_email_reports.py", "/app/backend/tests/test_gsb31_e2e.py", "/app/backend/tests/cleanup_test_data.py", "/app/test_reports/pytest/pytest_results_iter2.xml"],
+  "action_items": [
+    "Fix routes_reports.py Ringkasan number format: apply format '0' to the 'Jumlah transaksi' row (row 9) and keep IDR on 'Selisih' (row 8)",
+    "Return 400 (not 500) for invalid date_from/date_to in /api/reports/*.xlsx (catch ValueError in safe_date)",
+    "Optional: toast on email toggle success/error; pass type/category filters to the finance export or label it 'per periode'"
+  ],
+  "critical_code_review_comments": [
+    "notify.run_email_reminders: html_cache.setdefault(u['name'], build_html(...)) still calls build_html on every iteration (the argument is evaluated eagerly), so the cache does nothing.",
+    "notify: emails are sent one after another with a 30s timeout each, while holding the in-process asyncio.Lock. That's fine for ≤10 users, but the lock does not protect across multiple workers/replicas (the cron_runs dedupe covers the cron path, not manual runs).",
+    "notify: if every send fails, emailed_levels is not updated, so it retries on the next run (good). With partial failure (some sent), the levels are marked as emailed and users whose send failed will never get that level.",
+    "notify: digest recipients include every active user with an email, regardless of role. That matches the spec (director + staff), but staff currently have no email, so only the director receives reminders (the UI warning shows this correctly).",
+    "routes_reports.sheet: column width calculation runs str() on every cell. Fine at current data size."
+  ],
+  "updated_files": ["/app/backend/tests/test_gsb31_email_reports.py"],
+  "success_rate": {"backend": "87.5% (14/16 new tests; 2 failures = the 2 minor bugs above) + regression 22/22", "frontend": "100%"},
+  "test_credentials": "From /app/memory/test_credentials.md: correct. Director tengku.erens / GSB31-Direktur!2026; staff temp GSB31-Sementara!26 (reset after run).",
+  "seed_data_creation": "All test data was cleaned up: TEST_ users (incl. the delivered@resend.dev recipient and leftover test_ users from the regression run), the main agent's leftover 'TEST_Kontrak Email' document, TEST docs/transactions/kopra/quotations/partners/reminders, all 5 db.email_logs entries (all test-created, including the main agent's), cron_runs test ids (test-run-1, TEST_cron_*). email_reminders_enabled=true. Staff passwords reset to GSB31-Sementara!26. Backend restarted to reconcile counters. Final DB: 4 users, 0 docs/reminders/tx/kopra/email_logs/cron_runs. Emails actually sent by this run: 4 (2 to dikafirmanyoga@gmail.com, 2 to delivered@resend.dev).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run: cd /app/backend && REACT_APP_BACKEND_URL=<url> python -m pytest tests/test_gsb31_email_reports.py -n 0 -v -s (it SENDS REAL EMAILS: 2 runs x 2 recipients, including the customer). Afterwards run python tests/cleanup_test_data.py, delete db.email_logs and the TEST_cron_* cron_runs, then sudo supervisorctl restart backend. The suite's last step deactivates the TEST recipient; cleanup deletes it. Server date in the container is 2026-10-17.",
+  "rca of the issue": "Number format bug: sheet() writes title_lines (3) + a blank row, so the header is at row len(title)+2=5 and data starts at row 6. The hardcoded row=8 assumed data started at row 5. Repro: export finance.xlsx and inspect the Ringkasan cell B8 (format '0') and B9 (format Rp). Invalid date 500: safe_date() -> date.fromisoformat('2026-13-45') raises an uncaught ValueError."
+}

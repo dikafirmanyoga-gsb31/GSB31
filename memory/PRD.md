@@ -22,8 +22,14 @@ User choices: 4 akun awal dengan password sementara (wajib ganti); persetujuan p
 - Dashboard from real data; Data Perusahaan; Mitra (dedupe); Usaha Kopra (configurable types/units); Penawaran (server totals, status flow, approval, print); Dokumen & Kontrak (upload/download protected); Pengingat (auto, no duplicates, H-30/14/7 configurable, Asia/Jakarta, tasks, follow-up); Keuangan (transactions, summary, chart, void by director); Menu Direktur (summary, akun, audit log, pengaturan); CP31 status page (not connected)
 - Tested: iteration_1 (backend 22/22, frontend 95%) — issues fixed afterwards (XFF lockout bypass, mobile overflow, sheet close, approve buttons hidden, void dialog)
 
+## Implemented (2026-10-17, iteration 2)
+- Email reminders (Emergent managed Resend): daily cron 08:00 WIB (.emergent/crons.yml -> POST /api/cron/reminder-emails, bearer secret, idempotent run id), one digest per active user with email, each level (H-30/14/7/terlambat) emailed once per document/contract, reset when expiry changes; director tab "Notifikasi Email" (toggle, send now, logs)
+- Excel export: /api/reports/finance.xlsx (finance roles; Ringkasan, Per Bulan, Per Kategori, Transaksi) and /api/reports/kopra.xlsx (all roles; price columns only for finance roles); buttons on Keuangan & Usaha Kopra pages
+- Tested iteration_2: 14/16 new + 22/22 regression; 2 minor bugs (number format, invalid date 500) fixed and verified
+
 ## Backlog
-- P1: Email/WhatsApp notifications (not configured; in-app only)
+- P1: WhatsApp notifications (not configured)
+- P1: Staff accounts need email addresses to receive reminder emails
 - P1: CP31 integration once API/docs available
 - P2: shadcn date pickers, export Excel/CSV reports, laporan laba-rugi when data sufficient
 - P2: Company profile fields (alamat, telepon, NPWP) must be filled by director — currently empty

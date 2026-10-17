@@ -238,8 +238,13 @@ function EmailTab() {
   if (!data || !settings) return null;
   const enabled = settings.email_reminders_enabled !== false;
   const toggle = async (v) => {
-    await api.put("/settings", { email_reminders_enabled: !!v });
-    reloadS();
+    try {
+      await api.put("/settings", { email_reminders_enabled: !!v });
+      toast.success(v ? "Email pengingat diaktifkan." : "Email pengingat dinonaktifkan.");
+      reloadS();
+    } catch (e) {
+      toast.error(errMsg(e));
+    }
   };
   const run = async () => {
     setBusy(true);
