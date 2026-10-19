@@ -1,0 +1,18 @@
+{
+  "summary": "Iteration 7 (group D: stable React keys _k in QuotationForm). Frontend-only Playwright tests, logged in as director. 1) Create (desktop): added 3 rows (Kopra A 10x1000, B 20x2000, C 30x3000), subtotal Rp 140.000. Removed the MIDDLE row (quotation-item-remove-1). Rows 0 and 1 then held [A,10,1000] and [C,30,3000], each with its own values, and subtotal/total = Rp 100.000. Saved. The POST body items had no _k. MongoDB stores exactly 2 items with no _k field (checked directly in the DB). The detail page total is Rp 100.000. 2) Focus: typed character by character into a newly added row and into row 0 after removing a row above it. The focus stayed on the same input and the values were kept. 3) Edit draft: the 2 items loaded in order with the right subtotal. Added 2 rows, removed row 0, the values were kept, and typing in qty did not lose focus. Set PPN to 11 and saved. The PUT body had no _k/amount. The detail total Rp 234.210 matches the form and backend (211.000 + 23.210). 4) Regression: submit -> pending -> approve -> status approved, and the Mark Sent button is shown. 5) Mobile 390: add 3 rows / remove the middle one keeps M1 and M3, subtotal is correct, no horizontal overflow (scrollWidth 390), and the card layout is usable. No console errors. Cleanup done: TEST_ partner, the quotation and 1 reminder deleted, staff passwords reset, backend restarted. No emails were sent.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "rowSeq is a module-level counter, so keys are unique within the session. Fine for client-only keys.",
+    "The edit load strips the 'amount' field and adds _k. The save maps only the allowed fields, so _k and amount are never sent. Correct."
+  ],
+  "updated_files": ["/app/test_reports/iteration_7.json"],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100%"},
+  "seed_data_creation": "TEST_KeyPartner and quotation TEST_Q_KEYS_1 were created and then removed with cleanup_test_data.py (also 1 reminder). Backend restarted.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Groups A, B and D have been verified. The quotation form testids are quotation-item-{description|quantity|unit|price|remove}-{i}, quotation-add-item-button, quotation-subtotal/total, quotation-save-button. Detail page: quotation-submit/approve/mark-sent-button, quotation-detail-total. Run tests/cleanup_test_data.py + restart backend after testing.",
+  "test_credentials": "director tengku.erens / GSB31-Direktur!2026 (from /app/memory/test_credentials.md)"
+}

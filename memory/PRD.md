@@ -44,6 +44,14 @@ User choices: 4 akun awal dengan password sementara (wajib ganti); persetujuan p
 - Foto Dokumen: camera capture button in document detail (capture=environment), client-side JPEG compression (max 2400px), saved as protected document file
 - Mobile card lists (<768px) for Penawaran, Dokumen & Kontrak, Keuangan transactions; quotation detail items as cards on phone
 
+## Implemented (2026-10-19, iteration 7) — code quality
+- A: static audit (eslint no-undef/exhaustive-deps, ruff F821) found 0 undefined vars; fixed suppressed exhaustive-deps in useFetch (deps [url, tick]); unused catch vars removed
+- B: update_user hardened — extra=forbid on UserCreate/UserUpdate/ResetPwIn, name whitespace validation, ops counter released only after successful conditional update (role-guarded), rollback on duplicate email/concurrent change
+- C: no value-vs-identity `is` misuse found; `random` in tests/seed_mobile_cards.py only for image noise (kept, not security)
+- D: stable keys for editable quotation rows (_k client-only)
+- E (not done): large function refactors / type hints intentionally deferred
+- Tests: iteration_6 (51/51 backend + frontend no fetch loops), iteration_7 (quotation rows)
+
 ## Pending from user
 - Staff email addresses (Putri, Firdaus, Billy) — user said "nanti saja"
 - Official template files (kop surat, draft penawaran, kontrak kerja sama/tripartit) to be uploaded by user; later: generate quotation print from the official kop surat
