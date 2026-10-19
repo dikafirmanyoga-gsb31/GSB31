@@ -114,7 +114,6 @@ def test_setup_recipient_and_doc(d):
     assert r.status_code == 200, r.text
     STATE["uid"] = r.json()["id"]
     # baseline: anything already due? (pre-existing TEST_ doc was emailed at H-14 by main agent)
-    s = db.settings.find_one({"id": "app"}) or {}
     exp = (date.today() + timedelta(days=5)).isoformat()
     # use server tz date via documents days_left
     r = d.post(f"{API}/documents", json={"kind": "dokumen", "name": f"TEST_EmailDoc_{RUN}", "category": "Perizinan", "expiry_date": exp})

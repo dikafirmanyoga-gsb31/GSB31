@@ -15,7 +15,7 @@ api.interceptors.response.use(
         await refreshing;
         refreshing = null;
         return api(config);
-      } catch (e) {
+      } catch {
         refreshing = null;
         window.dispatchEvent(new Event("gsb:logout"));
       }

@@ -111,7 +111,7 @@ function DocSheet({ id, onClose, onChanged }) {
       const url = URL.createObjectURL(data);
       window.open(url, "_blank");
       setTimeout(() => URL.revokeObjectURL(url), 60000);
-    } catch (err) {
+    } catch {
       toast.error("Gagal membuka file.");
     }
   };

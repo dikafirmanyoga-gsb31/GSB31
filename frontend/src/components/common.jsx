@@ -110,7 +110,7 @@ export const MobileCard = ({ title, subtitle, badge, rows = [], footer, onClick,
 );
 export const Td = ({ className, children, ...p }) => <td className={cn("px-4 py-3.5 align-top text-slate-200", className)} {...p}>{children}</td>;
 
-export function useFetch(url, deps = []) {
+export function useFetch(url) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tick, setTick] = useState(0);
@@ -120,8 +120,7 @@ export function useFetch(url, deps = []) {
     setLoading(true);
     api.get(url).then((r) => alive && setData(r.data)).catch(() => alive && setData(null)).finally(() => alive && setLoading(false));
     return () => { alive = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url, tick, ...deps]);
+  }, [url, tick]);
   return { data, loading, reload: () => setTick((t) => t + 1) };
 }
 

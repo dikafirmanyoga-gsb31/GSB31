@@ -2,7 +2,7 @@ import re
 from typing import Optional, Literal
 
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pymongo.errors import DuplicateKeyError
 
 from core import (db, require, audit, hash_password, public_user, new_id, now_iso, MAX_USERS, MAX_OPS, ROLE_LABELS)
@@ -24,6 +24,7 @@ def norm_email(v):
 
 
 class UserCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     name: str = Field(min_length=2, max_length=80)
     username: str = Field(min_length=3, max_length=30)
     email: Optional[str] = None
@@ -43,15 +44,36 @@ class UserCreate(BaseModel):
     def v_email(cls, v):
         return norm_email(v)
 
+    @field_validator("name")
+    @classmethod
+    def v_name(cls, v):
+        return strip_name(v)
+
+
+def strip_name(v):
+    if v is None:
+        return None
+    v = " ".join(v.split())
+    if len(v) < 2:
+        raise ValueError("Nama minimal 2 karakter.")
+    return v
+
 
 class UserUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     name: Optional[str] = Field(None, min_length=2, max_length=80)
     email: Optional[str] = None
     role: Optional[Literal["opfin", "ops"]] = None
     is_active: Optional[bool] = None
 
+    @field_validator("name")
+    @classmethod
+    def v_name(cls, v):
+        return strip_name(v)
+
 
 class ResetPwIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     new_password: str = Field(min_length=8, max_length=128)
 
 
@@ -93,7 +115,7 @@ async def create_user(body: UserCreate, user=Depends(require("director"))):
     if body.role == "ops" and not await acquire("ops", MAX_OPS):
         await release("users")
         raise HTTPException(409, "Batas maksimum 7 akun Operasional telah tercapai.")
-    doc = {"id": new_id(), "username": body.username, "name": body.name.strip(), "role": body.role,
+    doc = {"id": new_id(), "username": body.username, "name": body.name, "role": body.role,
            "password_hash": hash_password(body.password), "is_active": True, "must_change_password": True,
            "token_version": 0, "created_at": now_iso(), "created_by": user["id"]}
     if body.email:
@@ -118,7 +140,7 @@ async def update_user(uid: str, body: UserUpdate, user=Depends(require("director
         raise HTTPException(400, "Peran dan status akun direktur tidak dapat diubah.")
     sets, unsets, inc = {}, {}, {}
     if body.name is not None:
-        sets["name"] = body.name.strip()
+        sets["name"] = body.name
     if body.email is not None:
         try:
             em = norm_email(body.email)
@@ -129,11 +151,12 @@ async def update_user(uid: str, body: UserUpdate, user=Depends(require("director
         else:
             unsets["email"] = ""
     role_changed = body.role is not None and body.role != target["role"]
+    acquired_ops = False
     if role_changed:
-        if body.role == "ops" and not await acquire("ops", MAX_OPS):
-            raise HTTPException(409, "Batas maksimum 7 akun Operasional telah tercapai.")
-        if target["role"] == "ops":
-            await release("ops")
+        if body.role == "ops":
+            if not await acquire("ops", MAX_OPS):
+                raise HTTPException(409, "Batas maksimum 7 akun Operasional telah tercapai.")
+            acquired_ops = True
         sets["role"] = body.role
         inc["token_version"] = 1
     if body.is_active is not None and body.is_active != target.get("is_active"):
@@ -148,10 +171,19 @@ async def update_user(uid: str, body: UserUpdate, user=Depends(require("director
     if inc:
         upd["$inc"] = inc
     if upd:
+        # Guard on the role read above so concurrent role changes cannot double-count the ops slot.
         try:
-            await db.users.update_one({"id": uid}, upd)
+            res = await db.users.update_one({"id": uid, "role": target["role"]}, upd)
         except DuplicateKeyError:
+            if acquired_ops:
+                await release("ops")
             raise HTTPException(409, "Email sudah digunakan akun lain.")
+        if not res.matched_count:
+            if acquired_ops:
+                await release("ops")
+            raise HTTPException(409, "Akun sedang diubah oleh proses lain. Silakan muat ulang lalu coba lagi.")
+        if role_changed and target["role"] == "ops":
+            await release("ops")
     if role_changed:
         await audit(user, "role_changed", "user", uid, detail=f"{target['role']} -> {body.role}")
     if "is_active" in sets:
