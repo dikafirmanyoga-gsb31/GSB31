@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { useAuth } from "@/context/AuthContext";
 import { api, errMsg, fmtDate, fmtIDR, todayISO, downloadFile } from "@/lib/api";
-import { PageHeader, Card, StatCard, Field, Select, Table, Td, Badge, Empty, useFetch, useSettings, usePartners } from "@/components/common";
+import { PageHeader, Card, StatCard, Field, Select, Table, Td, Badge, Empty, MobileCard, useFetch, useSettings, usePartners } from "@/components/common";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -105,7 +105,16 @@ export default function Finance() {
         </Card>
       )}
       <div className="mt-6">
-        <Table head={["Tanggal", "Jenis", "Kategori", "Keterangan", "Mitra", "Nominal", ""]} testId="transactions-table">
+        <Table head={["Tanggal", "Jenis", "Kategori", "Keterangan", "Mitra", "Nominal", ""]} testId="transactions-table"
+          mobile={(tx || []).map((t) => (
+            <MobileCard key={t.id} testId={`transaction-card-${t.id}`} title={t.description} subtitle={`${t.category} · ${t.created_by_name || ""}`}
+              badge={<Badge value={t.type} />}
+              rows={[["Tanggal", fmtDate(t.date)], ["Nominal", <span className={t.type === "pemasukan" ? "font-mono font-semibold text-emerald-300" : "font-mono font-semibold text-rose-300"}>{fmtIDR(t.amount)}</span>], t.partner_name && ["Mitra", t.partner_name]]}
+              footer={<>
+                <Button size="sm" variant="outline" onClick={() => setDlg(t)} data-testid={`transaction-card-edit-${t.id}`}><Pencil className="mr-1 h-4 w-4" />Ubah</Button>
+                {can("director") && <Button size="sm" variant="ghost" onClick={() => setVoiding(t)} data-testid={`transaction-card-void-${t.id}`}><Ban className="mr-1 h-4 w-4" />Batalkan</Button>}
+              </>} />
+          ))}>
           {(tx || []).map((t) => (
             <tr key={t.id} className="hover:bg-white/5" data-testid={`transaction-row-${t.id}`}>
               <Td>{fmtDate(t.date)}</Td>

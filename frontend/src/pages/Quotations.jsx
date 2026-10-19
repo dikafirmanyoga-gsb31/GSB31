@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Plus, Search } from "lucide-react";
 import { fmtDate, fmtIDR } from "@/lib/api";
-import { PageHeader, Select, Table, Td, Badge, Empty, useFetch, STATUS } from "@/components/common";
+import { PageHeader, Select, Table, Td, Badge, Empty, MobileCard, useFetch, STATUS } from "@/components/common";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -25,7 +25,13 @@ export default function Quotations() {
           {["draft", "pending", "approved", "sent", "rejected", "expired"].map((s) => <option key={s} value={s}>{STATUS[s][0]}</option>)}
         </Select>
       </div>
-      <Table head={["Nomor", "Tanggal", "Pelanggan", "Berlaku s/d", "Total", "Status"]} testId="quotations-table">
+      <Table head={["Nomor", "Tanggal", "Pelanggan", "Berlaku s/d", "Total", "Status"]} testId="quotations-table"
+        mobile={(data || []).map((x) => (
+          <MobileCard key={x.id} onClick={() => navigate(`/penawaran/${x.id}`)} testId={`quotation-card-${x.id}`}
+            title={<span className="font-mono text-cyan-300">{x.number}</span>} subtitle={x.partner_name || "—"}
+            badge={<Badge value={x.effective_status} />}
+            rows={[["Tanggal", fmtDate(x.date)], ["Berlaku s/d", fmtDate(x.valid_until)], ["Total", <span className="font-mono font-semibold">{fmtIDR(x.total)}</span>]]} />
+        ))}>
         {(data || []).map((x) => (
           <tr key={x.id} className="cursor-pointer hover:bg-white/5" onClick={() => navigate(`/penawaran/${x.id}`)} data-testid={`quotation-row-${x.id}`}>
             <Td className="font-mono text-cyan-300">{x.number}</Td>

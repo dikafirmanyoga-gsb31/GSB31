@@ -1,8 +1,8 @@
 import { useState, useRef } from "react";
-import { Plus, Search, Pencil, Upload, FileDown, Trash2 } from "lucide-react";
+import { Plus, Search, Pencil, Upload, FileDown, Trash2, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { api, errMsg, fmtDate, todayISO } from "@/lib/api";
-import { PageHeader, Field, Select, Table, Td, Badge, Empty, useFetch, useSettings, usePartners } from "@/components/common";
+import { PageHeader, Field, Select, Table, Td, Badge, Empty, MobileCard, useFetch, useSettings, usePartners } from "@/components/common";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -59,21 +59,44 @@ function DocDialog({ initial, kind, settings, partners, onClose, onSaved }) {
   );
 }
 
+const compressImage = (file) => new Promise((resolve) => {
+  if (!file.type.startsWith("image/") || file.type === "image/png" && file.size < 2 * 1024 * 1024) return resolve(file);
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = () => {
+    const scale = Math.min(1, 2400 / Math.max(img.width, img.height));
+    const c = document.createElement("canvas");
+    c.width = Math.round(img.width * scale);
+    c.height = Math.round(img.height * scale);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(url);
+    c.toBlob((b) => {
+      if (!b) return resolve(file);
+      const stamp = new Date().toLocaleString("sv-SE", { timeZone: "Asia/Jakarta" }).replace(/[: ]/g, "-");
+      resolve(new File([b], `foto-dokumen-${stamp}.jpg`, { type: "image/jpeg" }));
+    }, "image/jpeg", 0.85);
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+  img.src = url;
+});
+
 function DocSheet({ id, onClose, onChanged }) {
   const { data: d, reload } = useFetch(id ? `/documents/${id}` : null);
   const ref = useRef();
+  const camRef = useRef();
   const [busy, setBusy] = useState(false);
   const upload = async (e) => {
-    const file = e.target.files?.[0];
+    const picked = e.target.files?.[0];
     e.target.value = "";
-    if (!file) return;
+    if (!picked) return;
+    const file = await compressImage(picked);
     if (file.size > 10 * 1024 * 1024) return toast.error("Ukuran file maksimal 10 MB.");
     const fd = new FormData();
     fd.append("file", file);
     setBusy(true);
     try {
       await api.post(`/documents/${id}/files`, fd);
-      toast.success("File diunggah.");
+      toast.success("File disimpan ke dokumen.");
       reload();
       onChanged();
     } catch (err) {
@@ -115,12 +138,16 @@ function DocSheet({ id, onClose, onChanged }) {
               <div className="col-span-2"><dt className="text-xs text-muted-foreground">Lokasi penyimpanan</dt><dd>{d.storage_location || "—"}</dd></div>
               {d.notes && <div className="col-span-2"><dt className="text-xs text-muted-foreground">Catatan</dt><dd>{d.notes}</dd></div>}
             </dl>
-            <div className="mt-6 flex items-center justify-between">
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-sm font-semibold">File ({d.files.length})</h3>
               <input ref={ref} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="hidden" onChange={upload} data-testid="document-file-input" />
-              <Button size="sm" variant="outline" disabled={busy} onClick={() => ref.current.click()} data-testid="document-upload-button"><Upload className="mr-1 h-4 w-4" />{busy ? "Mengunggah…" : "Unggah File"}</Button>
+              <input ref={camRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={upload} data-testid="document-camera-input" />
+              <div className="flex gap-2">
+                <Button size="sm" disabled={busy} onClick={() => camRef.current.click()} data-testid="document-camera-button"><Camera className="mr-1 h-4 w-4" />Foto Dokumen</Button>
+                <Button size="sm" variant="outline" disabled={busy} onClick={() => ref.current.click()} data-testid="document-upload-button"><Upload className="mr-1 h-4 w-4" />{busy ? "Mengunggah…" : "Unggah File"}</Button>
+              </div>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">PDF/JPG/PNG/WEBP, maks. 10 MB. File disimpan terlindungi dan hanya bisa dibuka setelah login.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Foto Dokumen membuka kamera belakang di HP (di komputer akan memilih gambar). Foto otomatis dikecilkan agar hemat kuota. PDF/JPG/PNG/WEBP, maks. 10 MB. File tersimpan terlindungi dan hanya bisa dibuka setelah login.</p>
             <ul className="mt-3 divide-y divide-border">
               {d.files.map((f) => (
                 <li key={f.id} className="flex items-center justify-between gap-2 py-2 text-sm" data-testid={`document-file-${f.id}`}>
@@ -169,7 +196,14 @@ export default function Documents() {
         <Select value={flt.category} onChange={set("category")} data-testid="document-category-filter"><option value="">Semua kategori</option>{settings.document_categories.map((c) => <option key={c}>{c}</option>)}</Select>
         <Select value={flt.state} onChange={set("state")} data-testid="document-state-filter"><option value="">Semua status</option>{STATES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Select>
       </div>
-      <Table head={["Nama", "Jenis / Kategori", "Pihak", "Kedaluwarsa", "File", "Status", ""]} testId="documents-table">
+      <Table head={["Nama", "Jenis / Kategori", "Pihak", "Kedaluwarsa", "File", "Status", ""]} testId="documents-table"
+        mobile={(data || []).map((d) => (
+          <MobileCard key={d.id} onClick={() => setDetail(d.id)} testId={`document-card-${d.id}`} title={d.name}
+            subtitle={`${d.kind === "kontrak" ? "Kontrak" : "Dokumen"} · ${d.category}${d.number ? ` · ${d.number}` : ""}`}
+            badge={<Badge value={d.validity} />}
+            rows={[["Kedaluwarsa", <>{fmtDate(d.expiry_date)}{d.days_left !== null && <span className="block text-xs text-slate-400">{d.days_left < 0 ? `${-d.days_left} hari lalu` : `${d.days_left} hari lagi`}</span>}</>], ["Pihak", d.partner_name || "—"], ["File", d.file_count]]}
+            footer={<Button size="sm" variant="outline" onClick={() => setDlg(d)} data-testid={`document-card-edit-${d.id}`}><Pencil className="mr-1 h-4 w-4" />Ubah</Button>} />
+        ))}>
         {(data || []).map((d) => (
           <tr key={d.id} className="cursor-pointer hover:bg-white/5" onClick={() => setDetail(d.id)} data-testid={`document-row-${d.id}`}>
             <Td className="font-medium">{d.name}<div className="font-mono text-xs text-muted-foreground">{d.number}</div></Td>

@@ -75,14 +75,37 @@ export const Empty = ({ text = "Belum ada data.", testId = "empty-state" }) => (
   <div className="py-10 text-center text-sm text-muted-foreground" data-testid={testId}>{text}</div>
 );
 
-export const Table = ({ head, children, testId }) => (
-  <div className="glass-card overflow-x-auto rounded-2xl border border-slate-800/80" data-testid={testId}>
+export const Table = ({ head, children, testId, mobile }) => (
+  <>
+    {mobile && <div className="space-y-3 md:hidden" data-testid={testId ? `${testId}-mobile` : undefined}>{mobile}</div>}
+    <div className={cn("glass-card overflow-x-auto rounded-2xl border border-slate-800/80", mobile && "hidden md:block")} data-testid={testId}>
     <table className="w-full min-w-[640px] text-sm">
       <thead className="border-b border-slate-800 bg-[#0A101D]/90 text-left text-[11px] uppercase tracking-[0.12em] text-slate-400">
         <tr>{head.map((h) => <th key={h} className="px-4 py-3.5 font-medium">{h}</th>)}</tr>
       </thead>
       <tbody className="divide-y divide-slate-800/60 [&>tr]:transition-colors [&>tr:hover]:bg-cyan-400/[0.04]">{children}</tbody>
     </table>
+    </div>
+  </>
+);
+
+export const MobileCard = ({ title, subtitle, badge, rows = [], footer, onClick, testId }) => (
+  <div onClick={onClick} className={cn("glass-card accent-line rounded-2xl border border-slate-800/80 p-4 active:scale-[0.99] transition-transform", onClick && "cursor-pointer")} data-testid={testId}>
+    <div className="flex items-start justify-between gap-3">
+      <div className="min-w-0">
+        <p className="break-words font-semibold text-slate-100">{title}</p>
+        {subtitle && <p className="mt-0.5 break-words text-xs text-slate-400">{subtitle}</p>}
+      </div>
+      {badge && <div className="shrink-0">{badge}</div>}
+    </div>
+    {rows.length > 0 && (
+      <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 border-t border-slate-800/70 pt-3 text-sm">
+        {rows.filter(Boolean).map(([k, v]) => (
+          <div key={k} className="min-w-0"><dt className="text-[10px] uppercase tracking-[0.12em] text-slate-500">{k}</dt><dd className="break-words text-slate-200">{v}</dd></div>
+        ))}
+      </dl>
+    )}
+    {footer && <div className="mt-3 flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>{footer}</div>}
   </div>
 );
 export const Td = ({ className, children, ...p }) => <td className={cn("px-4 py-3.5 align-top text-slate-200", className)} {...p}>{children}</td>;
