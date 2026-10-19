@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
 const ITEM = { description: "", quantity: "", unit: "kg", unit_price: "" };
+let rowSeq = 0;
+const newRow = (data = ITEM) => ({ ...data, _k: `row-${++rowSeq}` });
 const addDays = (n) => {
   const d = new Date(`${todayISO()}T00:00:00`);
   d.setDate(d.getDate() + n);
@@ -23,7 +25,7 @@ const ItemsEditor = ({ items, setItems }) => {
         <span className="col-span-5">Uraian barang/jasa</span><span className="col-span-2">Kuantitas</span><span className="col-span-1">Satuan</span><span className="col-span-2">Harga satuan</span><span className="col-span-2 text-right">Jumlah</span>
       </div>
       {items.map((it, i) => (
-        <div key={i} className="grid grid-cols-2 gap-2 rounded-lg border border-border p-2 sm:grid-cols-12 sm:border-0 sm:p-0">
+        <div key={it._k} className="grid grid-cols-2 gap-2 rounded-lg border border-border p-2 sm:grid-cols-12 sm:border-0 sm:p-0">
           <Input className="col-span-2 sm:col-span-5" placeholder="Uraian" value={it.description} onChange={(e) => upd(i, "description", e.target.value)} data-testid={`quotation-item-description-${i}`} />
           <Input className="sm:col-span-2" type="number" min="0" step="any" placeholder="Qty" value={it.quantity} onChange={(e) => upd(i, "quantity", e.target.value)} data-testid={`quotation-item-quantity-${i}`} />
           <Input className="sm:col-span-1" placeholder="Satuan" value={it.unit} onChange={(e) => upd(i, "unit", e.target.value)} data-testid={`quotation-item-unit-${i}`} />
@@ -34,7 +36,7 @@ const ItemsEditor = ({ items, setItems }) => {
           </div>
         </div>
       ))}
-      <Button variant="outline" size="sm" onClick={() => setItems([...items, { ...ITEM }])} data-testid="quotation-add-item-button"><Plus className="mr-1 h-4 w-4" />Tambah baris</Button>
+      <Button variant="outline" size="sm" onClick={() => setItems([...items, newRow()])} data-testid="quotation-add-item-button"><Plus className="mr-1 h-4 w-4" />Tambah baris</Button>
     </div>
   );
 };
@@ -48,10 +50,10 @@ export default function QuotationForm() {
 
   useEffect(() => {
     if (id) {
-      api.get(`/quotations/${id}`).then(({ data }) => setF({ ...data, items: data.items.map(({ amount, ...r }) => r) }));
+      api.get(`/quotations/${id}`).then(({ data }) => setF({ ...data, items: data.items.map(({ amount: _amount, ...r }) => newRow(r)) }));
     } else {
       api.get("/quotations/next-number").then(({ data }) =>
-        setF({ number: data.number, date: todayISO(), valid_until: addDays(14), partner_id: "", subject: "Penawaran Harga Kopra", items: [{ ...ITEM }], tax_percent: 0, terms: "", notes: "" })
+        setF({ number: data.number, date: todayISO(), valid_until: addDays(14), partner_id: "", subject: "Penawaran Harga Kopra", items: [newRow()], tax_percent: 0, terms: "", notes: "" })
       );
     }
   }, [id]);

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="22" skipped="0" tests="67" time="48.796" timestamp="2026-10-19T21:42:42.791601+00:00" hostname="agent-env-53c6adfb-66cf-4624-be66-5be0529ea1eb"><testcase classname="tests.test_gsb31_e2e" name="test_login_username_and_cookies" time="0.337" /><testcase classname="tests.test_gsb31_e2e" name="test_login_email" time="0.299" /><testcase classname="tests.test_gsb31_e2e" name="test_wrong_password_and_lockout" time="0.640" /><testcase classname="tests.test_gsb31_e2e" name="test_no_register_endpoint" time="0.095" /><testcase classname="tests.test_gsb31_e2e" name="test_must_change_password_blocks_apis" time="0.980" /><testcase classname="tests.test_gsb31_e2e" name="test_opfin_director_only" time="1.156" /><testcase classname="tests.test_gsb31_e2e" name="test_ops_finance_restricted" time="1.223" /><testcase classname="tests.test_gsb31_e2e" name="test_staff_cannot_create_user" time="0.089" /><testcase classname="tests.test_gsb31_e2e" name="test_concurrent_user_creation_caps_at_10" time="2.198" /><testcase classname="tests.test_gsb31_e2e" name="test_11th_user_rejected" time="0.046" /><testcase classname="tests.test_gsb31_e2e" name="test_ops_max_7_via_role_change" time="0.109" /><testcase classname="tests.test_gsb31_e2e" name="test_deactivate_kills_session" time="0.878" /><testcase classname="tests.test_gsb31_e2e" name="test_director_role_immutable" time="0.085" /><testcase classname="tests.test_gsb31_e2e" name="test_partner_crud_and_dedupe" time="0.168" /><testcase classname="tests.test_gsb31_e2e" name="test_kopra_price_stripping" time="0.401" /><testcase classname="tests.test_gsb31_e2e" name="test_quotation_flow_and_approval_rbac" time="0.685" /><testcase classname="tests.test_gsb31_e2e" name="test_quotation_reminder_single" time="0.080" /><testcase classname="tests.test_gsb31_e2e" name="test_document_reminder_no_duplicates" time="0.495" /><testcase classname="tests.test_gsb31_e2e" name="test_mark_reminder_done" time="0.222" /><testcase classname="tests.test_gsb31_e2e" name="test_file_upload_download" time="1.093" /><testcase classname="tests.test_gsb31_e2e" name="test_finance_crud_summary_void" time="0.433" /><testcase classname="tests.test_gsb31_e2e" name="test_director_summary_and_audit" time="0.133" /><testcase classname="tests.test_gsb31_email_reports" name="test_email_run_rbac" time="1.480" /><testcase classname="tests.test_gsb31_email_reports" name="test_email_logs_director" time="0.354" /><testcase classname="tests.test_gsb31_email_reports" name="test_cron_unauthorized" time="0.290" /><testcase classname="tests.test_gsb31_email_reports" name="test_disabled_setting" time="0.161" /><testcase classname="tests.test_gsb31_email_reports" name="test_setup_recipient_and_doc" time="0.050"><failure message="AssertionError: {&quot;detail&quot;:&quot;Batas maksimum 10 akun telah tercapai. Akun baru tidak dapat dibuat.&quot;}&#10;assert 409 == 200&#10; +  where 409 = &lt;Response [409]&gt;.status_code">tests/test_gsb31_email_reports.py:114: in test_setup_recipient_and_doc
+    assert r.status_code == 200, r.text
+E   AssertionError: {"detail":"Batas maksimum 10 akun telah tercapai. Akun baru tidak dapat dibuat."}
+E   assert 409 == 200
+E    +  where 409 = &lt;Response [409]&gt;.status_code</failure></testcase><testcase classname="tests.test_gsb31_email_reports" name="test_manual_run_sends_digest" time="0.049"><failure message="AssertionError: assert 'nothing_due' == 'done'&#10;  &#10;  - done&#10;  + nothing_due">tests/test_gsb31_email_reports.py:131: in test_manual_run_sends_digest
+    assert j["status"] == "done"
+E   AssertionError: assert 'nothing_due' == 'done'
+E     
+E     - done
+E     + nothing_due</failure></testcase><testcase classname="tests.test_gsb31_email_reports" name="test_second_run_nothing_due" time="0.054" /><testcase classname="tests.test_gsb31_email_reports" name="test_expiry_change_resets_levels" time="0.000"><failure message="KeyError: 'doc'">tests/test_gsb31_email_reports.py:155: in test_expiry_change_resets_levels
+    doc = STATE["doc"]
+          ^^^^^^^^^^^^
+E   KeyError: 'doc'</failure></testcase><testcase classname="tests.test_gsb31_email_reports" name="test_cron_valid_and_idempotent" time="20.126"><failure message="assert (0 - 0) == 2&#10; +  where 0 = logs_count()">tests/test_gsb31_email_reports.py:178: in test_cron_valid_and_idempotent
+    assert logs_count() - before == 2
+E   assert (0 - 0) == 2
+E    +  where 0 = logs_count()</failure></testcase><testcase classname="tests.test_gsb31_email_reports" name="test_finance_report_setup" time="0.377" /><testcase classname="tests.test_gsb31_email_reports" name="test_finance_report_contents" time="0.150" /><testcase classname="tests.test_gsb31_email_reports" name="test_finance_report_number_formats" time="0.000" /><testcase classname="tests.test_gsb31_email_reports" name="test_finance_report_rbac" time="0.392" /><testcase classname="tests.test_gsb31_email_reports" name="test_report_invalid_date" time="0.041" /><testcase classname="tests.test_gsb31_email_reports" name="test_kopra_report" time="0.190"><failure message="AssertionError: assert ([('Pembelian', 'kg', 2, 300, 2900000)] and 2 == 1)">tests/test_gsb31_email_reports.py:292: in test_kopra_report
+    assert pemb and pemb[0][2] == 1 and pemb[0][3] == 100  # dibatalkan excluded from summary
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: assert ([('Pembelian', 'kg', 2, 300, 2900000)] and 2 == 1)</failure></testcase><testcase classname="tests.test_gsb31_email_reports" name="test_cleanup_test_recipient" time="0.000"><failure message="KeyError: 'uid'">tests/test_gsb31_email_reports.py:297: in test_cleanup_test_recipient
+    r = d.patch(f"{API}/users/{STATE['uid']}", json={"is_active": False})
+                               ^^^^^^^^^^^^
+E   KeyError: 'uid'</failure></testcase><testcase classname="tests.test_gsb31_update_user_security" name="test_baseline_counters" time="0.003" /><testcase classname="tests.test_gsb31_update_user_security" name="test_create_user_A_and_extra_fields_rejected_on_create" time="0.488"><failure message="AssertionError: {&quot;detail&quot;:&quot;Batas maksimum 10 akun telah tercapai. Akun baru tidak dapat dibuat.&quot;}&#10;assert 409 == 200&#10; +  where 409 = &lt;Response [409]&gt;.status_code">tests/test_gsb31_update_user_security.py:72: in test_create_user_A_and_extra_fields_rejected_on_create
+    assert r.status_code == 200, r.text
+E   AssertionError: {"detail":"Batas maksimum 10 akun telah tercapai. Akun baru tidak dapat dibuat."}
+E   assert 409 == 200
+E    +  where 409 = &lt;Response [409]&gt;.status_code</failure></testcase><testcase classname="tests.test_gsb31_update_user_security" name="test_patch_unknown_field_rejected[token_version-0]" time="0.000"><failure message="KeyError: 'A'">tests/test_gsb31_update_user_security.py:80: in test_patch_unknown_field_rejected
+    uid = S["A"]["id"]
+          ^^^^^^
+E   KeyError: 'A'</failure></testcase><testcase classname="tests.test_gsb31_update_user_security" name="test_patch_unknown_field_rejected[password_hash-x]" time="0.000"><failure message="KeyError: 'A'">tests/test_gsb31_update_user_security.py:80: in test_patch_unknown_field_rejected
+    uid = S["A"]["id"]
+          ^^^^^^
+E   KeyError: 'A'</failure></testcase><testcase classname="tests.test_gsb31_update_user_security" name="test_patch_unknown_field_rejected[must_change_password-False]" time="0.000"><failure message="KeyError: 'A'">tests/test_gsb31_update_user_security.py:80: in test_patch_unknown_field_rejected
+    uid = S["A"]["id"]
+          ^^^^^^
+E   KeyError: 'A'</failure></testcase><testcase classname="tests.test_gsb31_update_user_security" name="test_patch_unknown_field_rejected[username-hacker]" time="0.000"><failure message="KeyError: 'A'">tests/test_gsb31_update_user_security.py:80: in test_patch_unknown_field_rejected
+    uid = S["A"]["id"]
+          ^^^^^^
+E   KeyError: 'A'</failure></testcase><testcase classname="tests.test_gsb31_update_user_security" name="test_patch_unknown_field_rejected[id-zzz]" time="0.000"><failure message="KeyError: 'A'">tests/test_gsb31_update_user_security.py:80: in test_patch_unknown_field_rejected
+    uid = S["A"]["id"]
+          ^^^^^^
+E   KeyError: 'A'</failure></testcase><testcase classname="tests.test_gsb31_update_user_security" name="test_patch_unknown_field_rejected[created_by-x]" time="0.001"><failure message="KeyError: 'A'">tests/test_gsb31_update_user_security.py:80: in test_patch_unknown_field_rejected
+    uid = S["A"]["id"]
+          ^^^^^^
+E   KeyError: 'A'</failure></testcase><testcase classname="tests.test_gsb31_update_user_security" name="test_reset_password_extra_rejected" time="0.000"><failure message="KeyError: 'A'">tests/test_gsb31_update_user_security.py:92: in test_reset_password_extra_rejected
+    uid = S["A"]["id"]
+          ^^^^^^
+E   KeyError: 'A'</failure></testcase><testcase classname="tests.test_gsb31_update_user_security" name="test_role_cycle_counter" time="0.000"><failure message="KeyError: 'A'">tests/test_gsb31_update_user_security.py:101: in test_role_cycle_counter
+    uid = S["A"]["id"]
+          ^^^^^^
+E   KeyError: 'A'</failure></testcase><testcase classname="tests.test_gsb31_update_user_security" name="test_duplicate_email_with_role_ops_no_leak" time="0.000"><failure message="KeyError: 'A'">tests/test_gsb31_update_user_security.py:115: in test_duplicate_email_with_role_ops_no_leak
+    uid = S["A"]["id"]
+          ^^^^^^
+E   KeyError: 'A'</failure></testcase><testcase classname="tests.test_gsb31_update_user_security" name="test_invalid_email_400" time="0.000"><failure message="KeyError: 'A'">tests/test_gsb31_update_user_security.py:128: in test_invalid_email_400
+    r = d.patch(f"{API}/users/{S['A']['id']}", json={"email": "not-an-email"})
+                               ^^^^^^
+E   KeyError: 'A'</failure></testcase><testcase classname="tests.test_gsb31_update_user_security" name="test_concurrent_role_changes" time="0.000"><failure message="KeyError: 'A'">tests/test_gsb31_update_user_security.py:133: in test_concurrent_role_changes
+    uid = S["A"]["id"]
+          ^^^^^^
+E   KeyError: 'A'</failure></testcase><testcase classname="tests.test_gsb31_update_user_security" name="test_ops_limit_on_role_change" time="0.000"><failure message="KeyError: 'A'">tests/test_gsb31_update_user_security.py:146: in test_ops_limit_on_role_change
+    uid = S["A"]["id"]
+          ^^^^^^
+E   KeyError: 'A'</failure></testcase><testcase classname="tests.test_gsb31_update_user_security" name="test_deactivate_revokes_and_audit" time="0.000"><failure message="KeyError: 'A'">tests/test_gsb31_update_user_security.py:173: in test_deactivate_revokes_and_audit
+    u = S["extra"][0] if S.get("extra") else S["A"]
+                                             ^^^^^^
+E   KeyError: 'A'</failure></testcase><testcase classname="tests.test_gsb31_update_user_security" name="test_director_protections" time="0.541" /><testcase classname="tests.test_gsb31_update_user_security" name="test_spaces_name_rejected_on_create" time="0.050" /><testcase classname="tests.test_gsb31_update_user_security" name="test_non_director_patch_forbidden[putri.anjani]" time="0.609"><failure message="KeyError: 'A'">tests/test_gsb31_update_user_security.py:221: in test_non_director_patch_forbidden
+    r = s.patch(f"{API}/users/{S['A']['id']}", json={"role": "ops"})
+                               ^^^^^^
+E   KeyError: 'A'</failure></testcase><testcase classname="tests.test_gsb31_update_user_security" name="test_non_director_patch_forbidden[billy]" time="0.599"><failure message="KeyError: 'A'">tests/test_gsb31_update_user_security.py:221: in test_non_director_patch_forbidden
+    r = s.patch(f"{API}/users/{S['A']['id']}", json={"role": "ops"})
+                               ^^^^^^
+E   KeyError: 'A'</failure></testcase><testcase classname="tests.test_gsb31_update_user_security" name="test_final_counters" time="0.003" /><testcase classname="tests.test_gsb31_weekly_templates" name="test_weekly_rbac" time="1.539" /><testcase classname="tests.test_gsb31_weekly_templates" name="test_weekly_preview_counts" time="1.188" /><testcase classname="tests.test_gsb31_weekly_templates" name="test_weekly_run_disabled_and_cron" time="3.747" /><testcase classname="tests.test_gsb31_weekly_templates" name="test_template_upload_rbac" time="0.202" /><testcase classname="tests.test_gsb31_weekly_templates" name="test_template_upload_validation" time="0.655" /><testcase classname="tests.test_gsb31_weekly_templates" name="test_template_upload_and_list" time="1.117" /><testcase classname="tests.test_gsb31_weekly_templates" name="test_template_download" time="0.843" /><testcase classname="tests.test_gsb31_weekly_templates" name="test_template_unicode_filename_download" time="0.596" /><testcase classname="tests.test_gsb31_weekly_templates" name="test_template_archive" time="0.376" /></testsuite></testsuites>
