@@ -112,7 +112,15 @@ export default function QuotationDetail() {
             <div><p className="text-xs text-muted-foreground">Dibuat oleh</p><p>{q.created_by_name}</p></div>
             <div><p className="text-xs text-muted-foreground">Keputusan</p><p>{q.decided_by_name || "—"}</p></div>
           </div>
-          <table className="mt-5 w-full text-sm">
+          <div className="mt-5 space-y-2 sm:hidden" data-testid="quotation-items-mobile">
+            {q.items.map((it, i) => (
+              <div key={i} className="rounded-xl border border-slate-800/70 p-3 text-sm">
+                <p className="break-words font-medium">{it.description}</p>
+                <p className="mt-1 flex justify-between gap-2 font-mono text-xs text-slate-400"><span>{fmtNum(it.quantity)} {it.unit} × {fmtIDR(it.unit_price)}</span><span className="text-slate-100">{fmtIDR(it.amount)}</span></p>
+              </div>
+            ))}
+          </div>
+          <table className="mt-5 hidden w-full text-sm sm:table">
             <thead className="text-left text-xs text-muted-foreground"><tr><th className="py-2">Uraian</th><th>Kuantitas</th><th>Harga</th><th className="text-right">Jumlah</th></tr></thead>
             <tbody className="divide-y divide-border">
               {q.items.map((it, i) => (

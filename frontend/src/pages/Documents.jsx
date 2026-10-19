@@ -89,11 +89,11 @@ function DocSheet({ id, onClose, onChanged }) {
     const picked = e.target.files?.[0];
     e.target.value = "";
     if (!picked) return;
+    setBusy(true);
     const file = await compressImage(picked);
-    if (file.size > 10 * 1024 * 1024) return toast.error("Ukuran file maksimal 10 MB.");
+    if (file.size > 10 * 1024 * 1024) { setBusy(false); return toast.error("Ukuran file maksimal 10 MB."); }
     const fd = new FormData();
     fd.append("file", file);
-    setBusy(true);
     try {
       await api.post(`/documents/${id}/files`, fd);
       toast.success("File disimpan ke dokumen.");
@@ -143,7 +143,7 @@ function DocSheet({ id, onClose, onChanged }) {
               <input ref={ref} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="hidden" onChange={upload} data-testid="document-file-input" />
               <input ref={camRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={upload} data-testid="document-camera-input" />
               <div className="flex gap-2">
-                <Button size="sm" disabled={busy} onClick={() => camRef.current.click()} data-testid="document-camera-button"><Camera className="mr-1 h-4 w-4" />Foto Dokumen</Button>
+                <Button size="sm" disabled={busy} onClick={() => camRef.current.click()} data-testid="document-camera-button"><Camera className="mr-1 h-4 w-4" />{busy ? "Memproses…" : "Foto Dokumen"}</Button>
                 <Button size="sm" variant="outline" disabled={busy} onClick={() => ref.current.click()} data-testid="document-upload-button"><Upload className="mr-1 h-4 w-4" />{busy ? "Mengunggah…" : "Unggah File"}</Button>
               </div>
             </div>

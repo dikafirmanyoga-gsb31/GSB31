@@ -40,6 +40,10 @@ User choices: 4 akun awal dengan password sementara (wajib ganti); persetujuan p
 - Mobile: bottom navigation (Beranda, Penawaran, Kopra, Pengingat, Menu), safe-area insets, no horizontal overflow; same backend/RBAC
 - Not provided: full offline data, background push notifications
 
+## Implemented (2026-10-17, iteration 6)
+- Foto Dokumen: camera capture button in document detail (capture=environment), client-side JPEG compression (max 2400px), saved as protected document file
+- Mobile card lists (<768px) for Penawaran, Dokumen & Kontrak, Keuangan transactions; quotation detail items as cards on phone
+
 ## Pending from user
 - Staff email addresses (Putri, Firdaus, Billy) — user said "nanti saja"
 - Official template files (kop surat, draft penawaran, kontrak kerja sama/tripartit) to be uploaded by user; later: generate quotation print from the official kop surat

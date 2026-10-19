@@ -1,0 +1,29 @@
+{
+  "summary": "Frontend-only testing of iteration 5 features (Foto Dokumen camera upload + mobile card lists). All requested flows PASS at 390x800 and desktop 1920: quotation/document/transaction cards replace tables on mobile, tables on desktop; card tap -> detail; document-card-edit opens dialog without opening the sheet; transaction card edit works (amount 2.5jt->2.75jt saved & reflected), void button shows for director only (opfin has 0 void buttons, can still edit). Camera button opens a single-file chooser; input accept=image/*, capture=environment. A 4000x3000 JPEG of 10.2 MB (bigger than the 10 MB limit) was compressed on the device to foto-dokumen-<stamp>.jpg, 2400x1800, 2705 KB, image/jpeg (checked by downloading it through the API). It uploaded, appears in the file list and opens via document-file-open (blob URL). A PNG through document-file-input still uploads (small.png, image/png, 200x100). No horizontal overflow at 390px on /penawaran, /dokumen, /keuangan, /, /mitra, /kopra, /pengingat, /template. One existing, out-of-scope page does overflow: the quotation detail page (/penawaran/:id), by 23px.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "QuotationDetail items table (QuotationDetail.jsx ~line 115)", "issue": "At 390px the page overflows sideways by 23px. The item table (Uraian/Kuantitas/Harga/Jumlah) and the totals column are cut off past the right edge of the card (e.g. 'Rp 3.000.000,00' cut off). Fix: wrap the table in overflow-x-auto, or reuse the MobileCard pattern for item rows on mobile.", "selector": "/penawaran/{id} table.mt-5", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Document detail sheet", "issues": ["No busy/loading feedback while a photo is being compressed on the phone (setBusy(true) only runs after compressImage finishes). A 12MP photo on a slow phone can take a second or more, so users may tap twice. Move setBusy(true) before the compressImage call.", "The 'Mengunggah…' label only appears on the Unggah File button, not on the Foto Dokumen button."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/seed_mobile_cards.py", "/app/backend/tests/cleanup_test_data.py"],
+  "action_items": [
+    "Make the quotation detail item table responsive at 390px (overflow-x-auto wrapper or mobile cards)",
+    "Optional: call setBusy(true) before compressImage in DocSheet.upload so there is feedback while compressing and no double submit"
+  ],
+  "critical_code_review_comments": [
+    "compressImage: any PNG over 2 MB is turned into a JPEG, so transparency is lost (it becomes a black background). Acceptable for document photos, but worth knowing.",
+    "compressImage: if the browser cannot decode the image (e.g. HEIC on desktop Chrome), the original file is sent and the backend rejects it with 400 'Format file tidak didukung'. iOS Safari usually converts camera captures to JPEG, so the risk is low.",
+    "Small JPEGs/WEBPs are always re-encoded, even when no resize is needed. This is harmless but loses a little quality; you could skip re-encoding when scale==1 and the file is already under about 1.5 MB."
+  ],
+  "updated_files": ["/app/backend/tests/seed_mobile_cards.py"],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100% of requested features; 1 out-of-scope overflow found"},
+  "seed_data_creation": "TEST_Mobile Mitra Kartu partner, TEST_QM-001 quotation, TEST_Dok Foto HP document (+2 files), TEST_ transaksi kartu transaction, all created via API and deleted with cleanup_test_data.py. Staff passwords reset to GSB31-Sementara!26 (putri.anjani was changed temporarily for the opfin test). No emails sent.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Seed with python /app/backend/tests/seed_mobile_cards.py (note: the document category must come from settings.document_categories; the hardcoded 'Legalitas' fails, so it was created separately). The script also writes /tmp/big_photo.jpg (4000x3000, about 10.5 MB) and /tmp/small.png. Clean up with cleanup_test_data.py. Mobile card testids: quotations-table-mobile/quotation-card-{id}, documents-table-mobile/document-card-{id}/document-card-edit-{id}, transactions-table-mobile/transaction-card-{id}/transaction-card-edit-{id}/transaction-card-void-{id}. The container clock reads Oct 2026."
+}
