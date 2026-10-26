@@ -52,6 +52,7 @@ async def create_indexes():
     await db.reminders.create_index("source_key", unique=True)
     await db.audit_logs.create_index([("at", -1)])
     await db.login_attempts.create_index("key", unique=True)
+    await db.login_known_ips.create_index([("user_id", 1), ("ip", 1)], unique=True)
     await db.email_logs.create_index([("at", -1)])
     await db.templates.create_index("id", unique=True)
 
