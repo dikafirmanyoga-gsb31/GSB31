@@ -52,6 +52,11 @@ User choices: 4 akun awal dengan password sementara (wajib ganti); persetujuan p
 - E (not done): large function refactors / type hints intentionally deferred
 - Tests: iteration_6 (51/51 backend + frontend no fetch loops), iteration_7 (quotation rows)
 
+## Implemented (2026-10-26, iteration 8) — SEC-001 login lockout DoS
+- routes_auth.py: lockout per (IP, identifier) 5 fails with backoff 15/30/60 min; per IP 20 fails/15 min across identifiers; per account 10 fails/15 min only pauses IPs never used for a successful login (db.login_known_ips, 60 days); client IP from X-Forwarded-For only when peer is private, using TRUSTED_PROXY_HOPS=3 (Cloudflare -> Google LB -> ingress)
+- Tested iteration_8: 18/18 + auth/RBAC regression
+- Remaining: attacker with 2-3 IPs can still pause logins from NEW IPs while attack lasts (known IPs unaffected); optional device cookie hardening; TRUSTED_PROXY_HOPS must be re-verified in production
+
 ## Pending from user
 - Staff email addresses (Putri, Firdaus, Billy) — user said "nanti saja"
 - Official template files (kop surat, draft penawaran, kontrak kerja sama/tripartit) to be uploaded by user; later: generate quotation print from the official kop surat

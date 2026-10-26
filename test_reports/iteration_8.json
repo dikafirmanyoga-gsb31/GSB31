@@ -1,0 +1,27 @@
+{
+  "summary": "SEC-001 backend testing (login lockout DoS fix). 18/18 pytest pass in /app/backend/tests/test_gsb31_sec001_login_ratelimit.py. Verified: pair lock (5 failures -> 429, backoff 15/30/60 cap 60, identifier case-insensitive), victim from another IP still 200; distributed attack (12 IPs) -> unknown IP 429 even with the correct password while the previously known IP gets 200; account-window expiry and known-IP 60-day expiry; IP spray of 20 identifiers -> IP blocked for new identifiers, other IPs unaffected, block expiry recovers; pair counter/backoff reset on success; client_ip ignores spoofed X-Forwarded-For via external URL (single and 4-entry chain both resolved to real 136.108.30.124). Regression via external URL: httpOnly+Secure cookies, /me, refresh, logout revokes old token (401 via cookie and Bearer), change-password revokes old token + new pw login, inactive 403, ops 403 on /api/finance/summary. Existing director-based test files were skipped on purpose because the director password is unknown and running them would add failed attempts against the real director account.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/auth/login", "issue": "Design trade-off: the account rule (>=10 failures in 15 min from any IPs) is cheap to keep running. 2-3 attacker IPs at 5 attempts each per pair-lock period can keep the Director locked out from any NEW IP (dynamic home IP, mobile/CGNAT, travel) for as long as the attack lasts. Known IPs are still fine. Optional hardening: a long-lived httpOnly 'known device' cookie set on successful login, used together with the known-IP check."},
+      {"endpoint": "/api/auth/login", "issue": "_bump_window resets the window with a read-then-$set, which is not atomic. Concurrent failures right at the window boundary can be undercounted by a few. Low impact."},
+      {"endpoint": "/api/auth/login", "issue": "Pair key is deleted on success, which also clears the 'locks' backoff memory. An attacker who shares the victim's IP (NAT) has the backoff reset whenever the victim logs in. Acceptable, just noting it."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_gsb31_sec001_login_ratelimit.py", "/app/test_reports/pytest/pytest_sec001.xml"],
+  "action_items": ["None required for SEC-001. Optional: add a device-cookie bypass for the account-under-attack rule (see minor issue 1)."],
+  "critical_code_review_comments": [
+    "client_ip correctly trusts XFF only from a private peer and takes parts[-TRUSTED_PROXY_HOPS]. If the ingress topology changes (hop count), the resolved IP silently becomes a proxy IP (all users share one IP -> the IP spray limit would hit everyone). Consider logging/alerting when the resolved IP is private.",
+    "TRUSTED_PROXY_HOPS has a default '1' in os.environ.get. Fine as a fallback, but the guidelines prefer failing fast.",
+    "The account-rule 429 is checked before password verification, so an unknown IP gets no password-correctness oracle. Good.",
+    "Locked check happens before the user lookup, so a lock gives no user enumeration. Good."
+  ],
+  "updated_files": ["/app/backend/tests/test_gsb31_sec001_login_ratelimit.py"],
+  "success_rate": {"backend": "100%", "frontend": "N/A (skipped as requested)"},
+  "test_credentials": "Director password unknown (changed by owner) - not used or modified. Tests create test_sec_* users (password TestSec!2026a) directly in Mongo and delete them in teardown.",
+  "seed_data_creation": "Temporary test_sec_* users plus their login_known_ips entries. All deleted, db.login_attempts cleared, backend restarted. TEST audit logs kept.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Run with `-n 0` (xdist is auto-enabled and breaks the module fixture). Simulate IPs via http://localhost:8001 with 'X-Forwarded-For: <IP>, 10.0.0.1, 10.0.0.2'. Use a separate account per scenario: after 10 failures on one account, unknown IPs get 429 by design. Older test files all need the director password, so don't run them."
+}
