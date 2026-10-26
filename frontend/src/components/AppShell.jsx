@@ -84,7 +84,7 @@ const UserBox = () => {
       </div>
       <div className="hidden min-w-0 px-2 leading-tight sm:block">
         <p className="truncate text-sm font-semibold text-slate-100" data-testid="topbar-user-name">{user.name}</p>
-        <p className="mt-0.5 inline-flex items-center rounded-full border border-cyan-500/30 bg-cyan-950/60 px-2 py-px text-[10px] font-medium uppercase tracking-[0.12em] text-cyan-300" data-testid="topbar-user-role">{user.role_label}</p>
+        <p className="mt-0.5 inline-flex items-center rounded-full border border-cyan-500/30 bg-cyan-950/60 px-2 py-px text-[10px] font-medium uppercase tracking-[0.12em] text-cyan-300" data-testid="topbar-user-role">{user.role === "director" ? "Direktur" : user.role_label}</p>
       </div>
       <span className="mx-1 hidden h-6 w-px bg-slate-700/70 sm:block" />
       <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" title="Ganti password" onClick={() => navigate("/ganti-password")} data-testid="topbar-change-password-button">
